@@ -1,0 +1,2610 @@
+---
+title: "CFTR interactomes"
+author: "Hugo Botelho"
+date: "August 5, 2021"
+output:
+  html_document:
+    toc: true
+    fig_crop: no
+  word_document: default
+  pdf_document:
+    fig_crop: no
+subtitle: Dataset comparison
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r, echo=FALSE}
+# For pdf
+# knitr::opts_chunk$set(echo = FALSE)
+
+# For html
+knitr::opts_chunk$set(fig.height = 6)
+knitr::opts_chunk$set(fig.width = 6)
+```
+
+```{r echo=FALSE, cache=TRUE, message=FALSE, warning=FALSE, results='hide'}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("biomaRt")
+
+library(biomaRt)
+source("https://raw.githubusercontent.com/hmbotelho/convert_gene_compound_IDs/master/initialize.R")
+
+# For Circos plot
+# Convert continuous numeric vector to HEX colors
+numeric_to_2color <- function(x, colors = c("darkgreen", "red"), lutminmax = c(NA, NA), ncolors = 255, colorna = "#A9A9A9"){
+
+  # Normalize data
+  x_min   <- ifelse(missing(lutminmax), min(x, na.rm = TRUE), lutminmax[1])
+  x_max   <- ifelse(missing(lutminmax), max(x, na.rm = TRUE), lutminmax[2])
+  x_norm  <- (x-x_min)/(x_max-x_min)
+  if(!missing(lutminmax)){
+    x_norm[x_norm < 0] <- 0
+    x_norm[x_norm > 1] <- 1
+  }
+  
+  # Generate colors
+  if(!require(grDevices)) library(grDevices)
+  colors <- colorRampPalette(colors)(ncolors)
+  
+  # map data to colors
+  i <- floor(x_norm*(ncolors-1)+1)
+  res <- colors[i]
+  res[is.na(res)] <- colorna
+  res
+}
+```
+
+```{r initialize, echo=FALSE, message=FALSE, warning=FALSE}
+library(openxlsx)
+library(readxl)
+library(XML)
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(readr)
+library(eulerr)
+library(DT)
+library(kableExtra)
+
+library(gtools)
+library(dplyr)
+library(circlize)
+
+datafolder <- getwd()
+
+path_extraids        <- paste0(datafolder, "/additional_ids.xlsx")
+extraids             <- read.xlsx(path_extraids, sheet = 1)
+
+src_extdrg_prihits   <- "Z:/Hugo/druggable_screen/analysis/190207_FINAL_SCORING/190207_treatment_summary_ZScore5x5median_Intensity_IntegratedIntensity_PM_bgCorr_intraimage.csv"
+src_extdrg_cnfhits   <- "Z:/Hugo/EXTDRG_validation_screen/analysis/EXTDRG_validation_treatmentsummary_ZScoreNC_NC-Neg1_Intensity_IntegratedIntensity_PM_bgCorr_allvariants.csv"
+path_extdrg          <- paste0(datafolder, "/extdrg.csv")
+path_extdrg_prihits  <- paste0(datafolder, "/extdrg_prihits.csv")
+path_extdrg_cnfhits  <- paste0(datafolder, "/extdrg_cnfhits.csv")
+
+src_pankow2015_core  <- "https://static-content.springer.com/esm/art%3A10.1038%2Fnature15729/MediaObjects/41586_2015_BFnature15729_MOESM252_ESM.xlsx"
+src_pankow2015_df    <- "https://static-content.springer.com/esm/art%3A10.1038%2Fnature15729/MediaObjects/41586_2015_BFnature15729_MOESM254_ESM.xlsx"
+path_pankow2015_core <- paste0(datafolder, "/pankow2015_core.csv")
+path_pankow2015_df   <- paste0(datafolder, "/pankow2015_df.csv")
+
+src_canato2018       <- "https://static-content.springer.com/esm/art%3A10.1007%2Fs00018-018-2896-7/MediaObjects/18_2018_2896_MOESM8_ESM.xlsx"
+path_canato2018_df   <- paste0(datafolder, "/canato2018_df.csv")
+path_canato2018_4RK  <- paste0(datafolder, "/canato2018_4rk.csv")
+
+src_santos2019       <- "https://www.mdpi.com/2073-4409/8/4/353/s1"
+path_santos2019_wt   <- paste0(datafolder, "/santos2019_wt.csv")
+path_santos2019_DDAA <- paste0(datafolder, "/santos2019_DDAA.csv")
+
+src_hutt2018_wt      <- "https://ars.els-cdn.com/content/image/1-s2.0-S0022283618306132-mmc1.xlsx"
+src_hutt2018_df      <- "https://ars.els-cdn.com/content/image/1-s2.0-S0022283618306132-mmc2.xlsx"
+path_hutt2018_wt     <- paste0(datafolder, "/hutt2018_wt.csv")
+path_hutt2018_df     <- paste0(datafolder, "/hutt2018_df.csv")
+
+src_rauniyar2014     <- NA
+path_rauniyar2014    <- NA
+
+src_almaca2013       <- "https://ars.els-cdn.com/content/image/1-s2.0-S0092867413010763-mmc3.xlsx"
+path_almaca2013      <- paste0(datafolder, "/almaca2013.csv")
+
+src_tomati2018       <- "https://www.jbc.org/article/S0021-9258(20)39124-9/fulltext"
+path_tomati2018      <- paste0(datafolder, "/tomati2018.csv")
+
+src_simpson2012      <- "https://static-content.springer.com/esm/art%3A10.1038%2Fncb2510/MediaObjects/41556_2012_BFncb2510_MOESM13_ESM.xls"
+path_simpson2012     <- paste0(datafolder, "/simpson2012.csv")
+
+src_wang2006         <- "https://www.cell.com/cms/10.1016/j.cell.2006.09.043/attachment/b9f855ad-7410-4d6f-92c4-8f537f9a98b7/mmc2.xls"
+path_wang2006_wt     <- paste0(datafolder, "/wang2006_wt.csv")
+path_wang2006_df     <- paste0(datafolder, "/wang2006_df.csv")
+
+src_reilly2017_wt    <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41598-017-06588-z/MediaObjects/41598_2017_6588_MOESM3_ESM.xls"
+src_reilly2017_df    <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41598-017-06588-z/MediaObjects/41598_2017_6588_MOESM2_ESM.xls"
+path_reilly2017_wt   <- paste0(datafolder, "/reilly2017_wt.csv")
+path_reilly2017_df   <- paste0(datafolder, "/reilly2017_df.csv")
+
+path_gilchrist2006_er      <- paste0(datafolder, "/gilchrist2006_er.csv")
+path_gilchrist2006_golgi   <- paste0(datafolder, "/gilchrist2006_golgi.csv")
+path_gilchrist2006_ergolgi <- paste0(datafolder, "/gilchrist2006_ergolgi.csv")
+
+src_pankow2019        <-  "https://stke.sciencemag.org/highwire/filestream/214754/field_highwire_adjunct_files/0/aan7984_Data_file_S1.xlsx"
+path_pankow2019       <- paste0(datafolder, "/pankow2019.csv")
+
+src_dang2020          <- "https://doi.org/10.1371/journal.pone.0239189.s001"
+path_dang2020         <- paste0(datafolder, "/dang2020.csv")
+
+src_hodos2020_deg     <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41598-020-76347-0/MediaObjects/41598_2020_76347_MOESM2_ESM.xlsx"
+src_hodos2020_cosig   <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41598-020-76347-0/MediaObjects/41598_2020_76347_MOESM3_ESM.xlsx"
+src_hodos2020_allsig  <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41598-020-76347-0/MediaObjects/41598_2020_76347_MOESM4_ESM.xlsx"
+path_hodos2020_deg    <- paste0(datafolder, "/hodos2020_deg.csv")
+path_hodos2020_cosig  <- paste0(datafolder, "/hodos2020_cosig.csv")
+path_hodos2020_allsig <- paste0(datafolder, "/hodos2020_allsig.csv")
+
+path_intfull          <- paste0(datafolder, "/INTERACTOMES_FULLDATA.csv")
+path_intsummary       <- paste0(datafolder, "/INTERACTOMES_SUMMARY.csv")
+```
+
+### Extended Druggable siRNA library
+
+```{r extdrg, results="hide", message=FALSE, warning=FALSE}
+# Get data
+if(file.exists(path_extdrg)){
+  
+    extdrg <- read_csv(path_extdrg)
+    
+} else{
+
+    df <- read_csv(src_extdrg_prihits) %>%
+          transmute(gene  = sub("^(.*)_(.*?)$", "\\1", treatment),
+                    sirna = sub("^(.*)_(.*?)$", "\\2", treatment),
+                    score = median) %>%
+          filter(!grepl("Scrambled", gene)) %>%
+          filter(!grepl("vx809", gene)) %>%
+          filter(!grepl("empty", gene)) %>%
+          group_by(gene) %>%
+          summarise(score  = mean(score),
+                    nsirna = n())
+    
+    gene0         <- df$gene                                                    # Get gene symbols
+    up            <- genesymbol_to_uniprot(gene0)                               # Convert gene symbols to uniprot
+    gene_na       <- gene0[which(is.na(up))]                                    # Gene symbols for which a Uniprot ID could not be found
+    up[is.na(up)] <- extraids[match(gene_na, extraids$symbol), "uniprot"]       # Manually add missing uniprot ids
+    gene          <- uniprot_to_genesymbol(up)
+    ensg          <- uniprot_to_ensembl(up)
+    id            <- uniprot_to_geneid(up)
+    gname         <- uniprot_to_genename(up, parallelize=TRUE)
+
+    extdrg <- tibble(symbol  = gene,
+                     uniprot = up,
+                     ensembl = ensg,
+                     entrez  = id,
+                     name    = gname,
+                     score   = df$score,
+                     nsirna  = df$nsirna)
+
+    write.csv(extdrg, path_extdrg, row.names = FALSE)
+}
+
+extdrgF <- extdrg %>%
+           group_by(uniprot) %>%
+           slice(1) %>%                # Remove duplicate uniprot IDs
+           ungroup() %>%
+           filter(!is.na(uniprot))     # Remove unknowns
+
+# Library statistics (mapped genes)
+n_extdrg         <- nrow(extdrg)
+n_extdrg_siRNAs  <- sum(extdrg$nsirna)
+n_extdrgF        <- nrow(extdrgF)
+n_extdrgF_siRNAs <- sum(extdrgF$nsirna)
+```
+
+All data from EXTDRG library:
+
+-   `r n_extdrg` genes
+-   `r n_extdrg_siRNAs` siRNAs
+
+After name updating:
+
+-   `r n_extdrgF` genes
+-   `r n_extdrgF_siRNAs` siRNAs
+
+### CFTR traffic hits: Primary screen
+
+```{r extdrg_prihits, results="hide", message=FALSE, warning=FALSE}
+# Get data
+if(file.exists(path_extdrg_prihits)){
+  
+    extdrg_prihits <- read_csv(path_extdrg_prihits)
+    
+} else{
+
+    df <- read_csv(src_extdrg_prihits) %>%
+          transmute(gene  = sub("^(.*)_(.*?)$", "\\1", treatment),
+                    sirna = sub("^(.*)_(.*?)$", "\\2", treatment),
+                    score = median) %>%
+          filter(!grepl("Scrambled", gene)) %>%
+          filter(!grepl("vx809", gene)) %>%
+          filter(!grepl("empty", gene)) %>%
+          filter(score >= 2) %>%
+          group_by(gene) %>%
+          summarise(score  = mean(score),
+                    nsirna = n()) %>%
+          arrange(desc(score))
+    
+    gene0         <- df$gene                                                    # Get gene symbols
+    up            <- genesymbol_to_uniprot(gene0)                               # Convert gene symbols to uniprot
+    gene_na       <- gene0[which(is.na(up))]                                    # Gene symbols for which a Uniprot ID could not be found
+    up[is.na(up)] <- extraids[match(gene_na, extraids$symbol), "uniprot"]       # Manually add missing uniprot ids
+    gene          <- uniprot_to_genesymbol(up)
+    ensg          <- uniprot_to_ensembl(up)
+    id            <- uniprot_to_geneid(up)
+    gname         <- uniprot_to_genename(up, parallelize=TRUE)
+
+    extdrg_prihits <- tibble(symbol  = gene,
+                             uniprot = up,
+                             ensembl = ensg,
+                             entrez  = id,
+                             name    = gname,
+                             score   = df$score,
+                             nsirna  = df$nsirna)
+
+    write.csv(extdrg_prihits, path_extdrg_prihits, row.names = FALSE)
+}
+
+
+extdrg_prihitsF <- extdrg_prihits %>%
+                   group_by(uniprot) %>%
+                   slice(1) %>%                # Remove duplicate uniprot IDs
+                   ungroup() %>%
+                   filter(!is.na(uniprot))     # Remove unknowns
+
+# Library statistics (mapped genes)
+n_extdrg_prihits         <- nrow(extdrg_prihits)
+n_extdrg_prihits_siRNAs  <- sum(extdrg_prihits$nsirna)
+n_extdrg_prihitsF        <- nrow(extdrg_prihitsF)
+n_extdrg_prihitsF_siRNAs <- sum(extdrg_prihitsF$nsirna)
+```
+
+All data from EXTDRG primary hits:
+
+-   `r n_extdrg_prihits` genes
+-   `r n_extdrg_prihits_siRNAs` siRNAs
+
+After name updating:
+
+-   `r n_extdrg_prihitsF` genes
+-   `r n_extdrg_prihitsF_siRNAs` siRNAs
+
+### CFTR traffic hits: Confirmation screen
+
+```{r extdrg_cnfhits, results="hide", message=FALSE, warning=FALSE}
+# Get data
+if(file.exists(path_extdrg_cnfhits)){
+  
+    extdrg_cnfhits <- read_csv(path_extdrg_cnfhits)
+    
+} else{
+
+    df <- read_csv(src_extdrg_cnfhits) %>%
+          mutate(gene  = sub("^(.*)_(.*?)$", "\\1", treatment),
+                 sirna = sub("^(.*)_(.*?)$", "\\2", treatment),
+                 score = F508del) %>%
+          filter(!grepl("^Scrambled", gene)) %>%
+          filter(!grepl("^Neg", gene)) %>%
+          filter(!Control) %>%
+          filter(hit_newscore227) %>%
+          filter(!is.na(score)) %>%
+          select(gene, sirna, score, Uniprot) %>%    
+          filter(score >= 1) %>%
+          group_by(gene, Uniprot) %>%
+          summarise(score  = mean(score),
+                    nsirna = n()) %>%
+          arrange(desc(score))
+    
+    up            <- df$Uniprot
+    gene          <- uniprot_to_genesymbol(up)
+    ensg          <- uniprot_to_ensembl(up)
+    id            <- uniprot_to_geneid(up)
+    gname         <- uniprot_to_genename(up, parallelize=TRUE)
+
+    extdrg_cnfhits <- tibble(symbol  = gene,
+                             uniprot = up,
+                             ensembl = ensg,
+                             entrez  = id,
+                             name    = gname,
+                             score   = df$score,
+                             nsirna  = df$nsirna)
+
+    write.csv(extdrg_cnfhits, path_extdrg_cnfhits, row.names = FALSE)
+}
+
+extdrg_cnfhitsF <- extdrg_cnfhits %>%
+                   group_by(uniprot) %>%
+                   slice(1) %>%                # Remove duplicate uniprot IDs
+                   ungroup() %>%
+                   filter(!is.na(uniprot))     # Remove unknowns
+
+# Library statistics (mapped genes)
+n_extdrg_cnfhits         <- nrow(extdrg_cnfhits)
+n_extdrg_cnfhits_siRNAs  <- sum(extdrg_cnfhits$nsirna)
+n_extdrg_cnfhitsF        <- nrow(extdrg_cnfhitsF)
+n_extdrg_cnfhitsF_siRNAs <- sum(extdrg_cnfhitsF$nsirna)
+```
+
+All data from EXTDRG confirmed hits:
+
+-   `r n_extdrg_cnfhits` genes
+-   `r n_extdrg_cnfhits_siRNAs` siRNAs
+
+After name updating:
+
+-   `r n_extdrg_cnfhitsF` genes
+-   `r n_extdrg_cnfhitsF_siRNAs` siRNAs
+
+```{r echo=FALSE, fig.height=4, fig.width=4}
+s_prihits_cnfhits <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                          confirmed_hits = extdrg_cnfhitsF$uniprot,
+                          DGKG  = "P49619",
+                          GRK5  = "P34947",
+                          LRRK1 = "Q38SD2",
+                          STYK1 = "Q6J9G0",
+                          TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, extdrg_cnfhitsF$uniprot)
+g_prihits_cnfhits <- extdrg_prihitsF %>%
+                     filter(uniprot %in% up_common) %>%
+                     arrange(symbol) %>%
+                     mutate(id = 1:n()) %>%
+                     select(id, symbol, uniprot, name)
+g_prihits_cnfhits %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+### Pankow CFTR interactome (2015)
+
+Nature (2015) 528, 510--516\
+**deltaF508 CFTR interactome remodelling promotes rescue of cystic fibrosis**\
+Sandra Pankow, Casimir Bamberger, Diego Calzolari, Salvador Martínez-Bartolomé, Mathieu Lavallée-Adam, William E. Balch & John R. Yates III\
+<https://doi.org/10.1038/nature15729>
+
+Immunoprecipitation-based proteomic-profiling of isogenic HBE41o- WT- and F508del-CFTR cells. Besides wt- and F508del-CFTR interactors (direct and indirect) a core CFTR interactome is defined: proteins which interact with at least one CFTR variant.  
+
+The authors develop and apply a co-purifying protein identification technology (CoPIT), an IP-based proteomic-profiling approach of protein-protein interactions. They first determined the changes that occur between the WT- and F508del-CFTR interactome in HBE41o- and CFBE41o- bronchial epithelial cell lines. They also study interactome changes upon temperature shift (to 30ºC for 1h, 6h and 24h) and HDACi treatment in CFBE cells.  
+
+The most important outcome of this study are the interactomes of WT-CFTR (Table S2) and F508del-CFTR (Table S3) which comprise 395 and 526 proteins, respectively, with an overlap of more than 85% or 638 proteins (Table S1).  
+
+
+```{r pankow2015, results='hide', message=FALSE, warning=FALSE}
+# Core CFTR interactome
+# Get data
+if(file.exists(path_pankow2015_core)){
+  
+    pankow2015_core <- read_csv(path_pankow2015_core)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_pankow2015_core, destfile = tmp, mode="wb")
+
+    df    <- tibble(read.xlsx(tmp, sheet = 1))
+    up    <- df$Uniprot_Entry
+    gene  <- uniprot_to_genesymbol(up)                                            # Get gene symbols
+    up_na <- up[which(is.na(gene))]                                               # Gene uniprot IDs for which a gene symbol could not be found
+    gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]       # Add missing gene symbols
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    pankow2015_core  <- tibble(symbol  = gene,
+                               uniprot = up,
+                               ensembl = ensg,
+                               entrez  = id,
+                               name    = gname)
+      
+    write.csv(pankow2015_core, path_pankow2015_core, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+pankow2015_coreF   <- pankow2015_core %>%
+                      group_by(uniprot) %>%
+                      slice(1) %>%                # Remove duplicate uniprot IDs
+                      ungroup() %>%
+                      filter(!is.na(uniprot))     # Remove unknowns
+
+n_pankow2015_core  <- nrow(pankow2015_core)
+n_pankow2015_coreF <- nrow(pankow2015_coreF)
+
+
+
+# F508del-CFTR interactome
+# Get data
+if(file.exists(path_pankow2015_df)){
+  
+    pankow2015_df <- read_csv(path_pankow2015_df)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_pankow2015_df, destfile = tmp, mode="wb")
+
+    df    <- tibble(read.xlsx(tmp, sheet = 1))
+    up    <- df[[3]]
+    gene  <- uniprot_to_genesymbol(up)                                            # Get gene symbols
+    up_na <- up[which(is.na(gene))]                                               # Gene uniprot IDs for which a gene symbol could not be found
+    gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]       # Add missing gene symbols
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    pankow2015_df  <- tibble(symbol  = gene,
+                             uniprot = up,
+                             ensembl = ensg,
+                             entrez  = id,
+                             name    = gname)
+      
+    write.csv(pankow2015_df, path_pankow2015_df, row.names = FALSE)
+}
+
+pankow2015_dfF   <- pankow2015_df %>%
+                    group_by(uniprot) %>%
+                    slice(1) %>%                # Remove duplicate uniprot IDs
+                    ungroup() %>%
+                    filter(!is.na(uniprot))     # Remove unknowns
+
+# Library statistics (mapped genes)
+n_pankow2015_df  <- nrow(pankow2015_df)
+n_pankow2015_dfF <- nrow(pankow2015_dfF)
+```
+
+**Core CFTR interactome:**\
+\* All data: `r n_pankow2015_core` genes.\
+\* After name updating: `r n_pankow2015_coreF` genes.
+
+**F508del-CFTR interactome:**\
+\* All data: `r n_pankow2015_df` genes.\
+\* After name updating: `r n_pankow2015_dfF` genes.
+
+```{r, echo=FALSE, eval=FALSE}
+s_prihits_cnfhits_pankow2015core <- list(primary_hits    = paste(extdrg_prihitsF$symbol, extdrg_prihitsF$uniprot), 
+                                         confirmed_hits  = paste(extdrg_cnfhitsF$symbol, extdrg_cnfhitsF$uniprot),
+                                         pankow2015_core = paste(pankow2015_coreF$symbol, pankow2015_coreF$uniprot),
+                                         DGKG  = "DGKG P49619",
+                                         GRK5  = "GRK5 P34947",
+                                         LRRK1 = "LRRK1 Q38SD2",
+                                         STYK1 = "STYK1 Q6J9G0",
+                                         TPK1  = "TPK1 Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_pankow2015core), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+```{r, echo=FALSE, eval=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_pankow2015df <- list(primary_hits    = extdrg_prihitsF$uniprot, 
+                                       confirmed_hits  = extdrg_cnfhitsF$uniprot,
+                                       pankow2015_df   = pankow2015_dfF$uniprot,
+                                       DGKG  = "P49619",
+                                       GRK5  = "P34947",
+                                       LRRK1 = "Q38SD2",
+                                       STYK1 = "Q6J9G0",
+                                       TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_pankow2015df), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_pankow2015 <- list(primary_hits    = extdrg_prihitsF$uniprot, 
+                                     confirmed_hits  = extdrg_cnfhitsF$uniprot,
+                                     pankow2015_core = pankow2015_coreF$uniprot,
+                                     pankow2015_df   = pankow2015_dfF$uniprot,
+                                     DGKG  = "P49619",
+                                     GRK5  = "P34947",
+                                     LRRK1 = "Q38SD2",
+                                     STYK1 = "Q6J9G0",
+                                     TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_pankow2015), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Pankow2018 (core)**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, pankow2015_coreF$uniprot)
+g_prihits_pankow2015_core <- extdrg_prihitsF %>%
+                             filter(uniprot %in% up_common) %>%
+                             arrange(symbol) %>%
+                             mutate(id = 1:n()) %>%
+                             select(id, symbol, uniprot, name)
+g_prihits_pankow2015_core %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+**Primary traffic hits & Pankow2018 (F508del)**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, pankow2015_dfF$uniprot)
+g_prihits_pankow2015_df <- extdrg_prihitsF %>%
+                           filter(uniprot %in% up_common) %>%
+                           arrange(symbol) %>%
+                           mutate(id = 1:n()) %>%
+                           select(id, symbol, uniprot, name)
+g_prihits_pankow2015_df %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+
+
+### Canato CFTR interactome (2018)
+
+Cell Mol Life Sci (2018) 75(24):4495-4509  
+**Proteomic interaction profiling reveals KIFC1 as a factor involved in early targeting of F508del-CFTR to degradation**  
+Sara Canato, João D Santos, Ana S Carvalho, Kerman Aloria, Margarida D Amaral, Rune Matthiesen, André O Falcao, Carlos M Farinha  
+<https://doi.org/10.1007/s00018-018-2896-7>
+
+Total interactome identified for F508del-CFTR and F508del-4RK-CFTR. Protein complexes were isolated by pulling-down CFTR from CFBE cells expressing these two variants.  
+
+The authors used a proteomic profiling approach coupled to global bioinformatic analysis to investigate the differential protein-protein interactions (PPIs) of F508del-CFTR vs F508del-4RK-CFTR (which allows F508delCFTR to escape the ERQC and consequently to reach the plasma membrane (PM) without, however, a significant correction in its folding). This approach resulted in the mapping of the comparative interactome of F508del-CFTR and F508del-4RK-CFTR to identify biological pathways dictating ER retention and degradation of F508del-CFTR and novel putative therapeutic targets in CF.  
+
+An important outcome of this study is a F508del-CFTR interactome from CFBE cells expressing this variant, which can be found in Table S1 and comprises 828 proteins. An interactome for F508del-4RK-CFTR is also provided. Furthermore, they compare their F508del-CFTR interactome with the “core CFTR interactome” found by Pankow and collaborators and find 217 common proteins corresponding to 26% of their complete list of interactors. This suggests that this work by Canato et al has additional interactors which might be of interest.  
+
+```{r canato2018, results='hide', message=FALSE, warning=FALSE}
+# F508del-CFTR interactome
+# Get data
+if(file.exists(path_canato2018_df)){
+  
+    canato2018_df <- read_csv(path_canato2018_df)
+    
+} else{
+
+    tmp    <- tempfile()
+    download.file(url = src_canato2018, destfile = tmp, mode="wb")
+    df      <- tmp %>%
+                  read.xlsx(cols=c(4:6, 10)) %>%
+                  tibble() %>%
+                  mutate(across(starts_with("DF"), as.numeric)) %>%
+                  mutate(up0 = sub("^.*?\\|(.*?)\\|(.*?)_.*$", "\\1", Head),
+                         gn0 = sub("^.*?\\|(.*?)\\|(.*?)_.*$", "\\2", Head),
+                         sum = rowSums(across(starts_with("DF")))) %>%
+                  filter(sum > 0)
+      
+    up      <- df$up0
+    gene    <- uniprot_to_genesymbol(up)
+    up_na   <- up[which(is.na(gene))]
+    gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]
+    ensg    <- uniprot_to_ensembl(up)
+    id      <- uniprot_to_geneid(up)
+    gname   <- uniprot_to_genename(up, parallelize = TRUE)
+    
+    canato2018_df <- tibble(symbol  = gene,
+                            uniprot = up,
+                            ensembl = ensg,
+                            entrez  = id,
+                            name    = gname)
+      
+    write.csv(canato2018_df, path_canato2018_df, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+bad_up         <- extraids %>%
+                  filter(!is.na(uniprot) & !in_database & uniprot %in% canato2018_df$uniprot) %>% 
+                  pull(uniprot)                       # Deprecated Uniprot IDs
+
+canato2018_dfF <- canato2018_df %>%
+                  group_by(uniprot) %>%
+                  slice(1) %>%                # Remove duplicate uniprot IDs
+                  ungroup() %>%
+                  filter(!is.na(uniprot)) %>%    # Remove unknowns
+                  filter(!uniprot %in% bad_up)   # Uniprots not in the database
+
+n_canato2018_df  <- nrow(canato2018_df)
+n_canato2018_dfF <- nrow(canato2018_dfF)
+
+
+
+# 4RK-CFTR interactome
+# Get data
+if(file.exists(path_canato2018_4RK)){
+  
+    canato2018_4RK <- read_csv(path_canato2018_4RK)
+    
+} else{
+
+    tmp    <- tempfile()
+    download.file(url = src_canato2018, destfile = tmp, mode="wb")
+    df      <- tmp %>%
+                  read.xlsx(cols=c(1:3, 10)) %>%
+                  tibble() %>%
+                  mutate(across(starts_with("4RK"), as.numeric)) %>%
+                  mutate(up0 = sub("^.*?\\|(.*?)\\|(.*?)_.*$", "\\1", Head),
+                         gn0 = sub("^.*?\\|(.*?)\\|(.*?)_.*$", "\\2", Head),
+                         sum = rowSums(across(starts_with("4RK")))) %>%
+                  filter(sum > 0)
+      
+    up      <- df$up0
+    gene    <- uniprot_to_genesymbol(up)
+    up_na   <- up[which(is.na(gene))]
+    gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]
+    ensg    <- uniprot_to_ensembl(up)
+    id      <- uniprot_to_geneid(up)
+    gname   <- uniprot_to_genename(up, parallelize = TRUE)
+    
+    canato2018_4RK <- tibble(symbol  = gene,
+                             uniprot = up,
+                             ensembl = ensg,
+                             entrez  = id,
+                             name    = gname)
+      
+    write.csv(canato2018_4RK, path_canato2018_4RK, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+bad_up          <- extraids %>%
+                  filter(!is.na(uniprot) & !in_database & uniprot %in% canato2018_4RK$uniprot) %>% 
+                  pull(uniprot)                       # Deprecated Uniprot IDs
+
+canato2018_4RKF <- canato2018_4RK %>%
+                   group_by(uniprot) %>%
+                   slice(1) %>%                # Remove duplicate uniprot IDs
+                   ungroup() %>%
+                   filter(!is.na(uniprot)) %>%    # Remove unknowns
+                   filter(!uniprot %in% bad_up)   # Uniprots not in the database
+ 
+n_canato2018_4RK  <- nrow(canato2018_4RK)
+n_canato2018_4RKF <- nrow(canato2018_4RKF)
+```
+
+**F508del-CFTR interactome:**\
+\* All data: `r n_canato2018_df` genes.\
+\* After name updating: `r n_canato2018_dfF` genes.
+
+**4RK-F508del-CFTR interactome:**\
+\* All data: `r n_canato2018_4RK` genes.\
+\* After name updating: `r n_canato2018_4RKF` genes.
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_canato2018 <- list(primary_hits    = extdrg_prihitsF$uniprot, 
+                                     confirmed_hits  = extdrg_cnfhitsF$uniprot,
+                                     canato2018_dfF  = canato2018_dfF$uniprot,
+                                     canato2018_4RKF = canato2018_4RKF$uniprot,
+                                     DGKG  = "P49619",
+                                     GRK5  = "P34947",
+                                     LRRK1 = "Q38SD2",
+                                     STYK1 = "Q6J9G0",
+                                     TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_canato2018), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Canato2018**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, canato2018_dfF$uniprot)
+g_prihits_canato2018 <- extdrg_prihitsF %>%
+                        filter(uniprot %in% up_common) %>%
+                        arrange(symbol) %>%
+                        mutate(id = 1:n()) %>%
+                        select(id, symbol, uniprot, name)
+                        
+
+g_prihits_canato2018 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+
+
+### Santos CFTR interactome (2019)
+
+Cells (2019) 8(4):353
+**Folding Status Is Determinant over Traffic-Competence in Defining CFTR Interactors in the Endoplasmic Reticulum**\
+João D. Santos, Sara Canato, Ana S. Carvalho, Hugo M. Botelho, Kerman Aloria, Margarida D. Amaral, Rune Matthiesen, Andre O. Falcao, Carlos M. Farinha\
+<https://doi.org/10.3390/cells8040353>
+
+Pulled-down proteins that interact with either wt- or DD/AA-CFTR in CFBE cells following a general strategy consisting of: (i) cell lysis and immunoprecipitation (IP) of CFTR and interacting proteins; (ii) identification of proteins by LC-MS/MS; and (iii) analysis of the CFTR interactome.  
+
+The authors aimed to explore the CFTR ERQC trafficking checkpoints by performing global comparisons of the interactions that regulate CFTR exit from the ER to identify protein factors involved in these processes. They used protein interaction profiling and global bioinformatics analyses and identified proteins that interact specifically with peptides harbouring the normal (wt) and 4RK AFT sequences, as well as proteins that interact with CFTR with/without abrogation of the DAD code (whose presence totally blocks CFTR exit from the ER). They also cross their datasets with the ones from Canato et al 2018.  
+
+An important outcome of this study is a wt-CFTR interactome from CFBE cells, which can be found in Dataset S1B and comprises 945 proteins. An interactome for DD/AA-CFTR is also provided.   
+
+
+```{r santos2019, results='hide', message=FALSE, warning=FALSE}
+# wt-CFTR interactome
+# Get data
+if(file.exists(path_santos2019_wt)){
+  
+    santos2019_wt <- read_csv(path_santos2019_wt)
+    
+} else{
+
+    tmp    <- tempfile()
+    tmpdir <- paste0(dirname(tmp), "/santos2019")
+    download.file(url = src_santos2019, destfile = tmp, mode="wb")
+    unzip(tmp, exdir = tmpdir)
+    
+    gene0 <- read.xlsx(paste0(tmpdir, "/Supplementary materials/Datasets_S1 to S7.xlsx"), sheet = 2, colNames = FALSE)[[1]]
+    up      <- genesymbol_to_uniprot(gene0)
+    gene_na <- gene0[which(is.na(up))]
+    up[is.na(up)] <- extraids[match(gene_na, extraids$symbol), "uniprot"]
+    gene    <- uniprot_to_genesymbol(up)
+    ensg    <- uniprot_to_ensembl(up)
+    id      <- uniprot_to_geneid(up)
+    gname   <- uniprot_to_genename(up, parallelize = TRUE)
+    
+    santos2019_wt <- tibble(symbol  = gene,
+                            uniprot = up,
+                            ensembl = ensg,
+                            entrez  = id,
+                            name    = gname)
+      
+    write.csv(santos2019_wt, path_santos2019_wt, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+santos2019_wtF <- santos2019_wt %>%
+                  group_by(uniprot) %>%
+                  slice(1) %>%                # Remove duplicate uniprot IDs
+                  ungroup() %>%
+                  filter(!is.na(uniprot))     # Remove unknowns
+
+n_santos2019_wt  <- nrow(santos2019_wt)
+n_santos2019_wtF <- nrow(santos2019_wtF)
+
+
+
+# DD/AA-CFTR interactome
+# Get data
+if(file.exists(path_santos2019_DDAA)){
+  
+    santos2019_DDAA <- read_csv(path_santos2019_DDAA)
+    
+} else{
+
+    tmp    <- tempfile()
+    tmpdir <- paste0(dirname(tmp), "/santos2019")
+    download.file(url = src_santos2019, destfile = tmp, mode="wb")
+    unzip(tmp, exdir = tmpdir)
+    
+    gene0 <- read.xlsx(paste0(tmpdir, "/Supplementary materials/Datasets_S1 to S7.xlsx"), sheet = 1, colNames = FALSE)[[1]]
+    up      <- genesymbol_to_uniprot(gene0)
+    gene_na <- gene0[which(is.na(up))]
+    up[is.na(up)] <- extraids[match(gene_na, extraids$symbol), "uniprot"]
+    gene    <- uniprot_to_genesymbol(up)
+    ensg    <- uniprot_to_ensembl(up)
+    id      <- uniprot_to_geneid(up)
+    gname   <- uniprot_to_genename(up, parallelize = TRUE)
+    
+    santos2019_DDAA <- tibble(symbol  = gene,
+                              uniprot = up,
+                              ensembl = ensg,
+                              entrez  = id,
+                              name    = gname)
+      
+    write.csv(santos2019_DDAA, path_santos2019_DDAA, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+santos2019_DDAAF <- santos2019_DDAA %>%
+                    group_by(uniprot) %>%
+                    slice(1) %>%                # Remove duplicate uniprot IDs
+                    ungroup() %>%
+                    filter(!is.na(uniprot))     # Remove unknowns
+
+n_santos2019_DDAA  <- nrow(santos2019_DDAA)
+n_santos2019_DDAAF <- nrow(santos2019_DDAAF)
+```
+
+**wt-CFTR interactome:**\
+\* All data: `r n_santos2019_wt` genes.\
+\* After name updating: `r n_santos2019_wtF` genes.
+
+**DD/AA-CFTR interactome:**\
+\* All data: `r n_santos2019_DDAA` genes.\
+\* After name updating: `r n_santos2019_DDAAF` genes.
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_santos2019 <- list(primary_hits     = extdrg_prihitsF$uniprot, 
+                                     confirmed_hits   = extdrg_cnfhitsF$uniprot,
+                                     santos2019_wtF   = santos2019_wtF$uniprot,
+                                     santos2019_DDAAF = santos2019_DDAAF$uniprot,
+                                     DGKG  = "P49619",
+                                     GRK5  = "P34947",
+                                     LRRK1 = "Q38SD2",
+                                     STYK1 = "Q6J9G0",
+                                     TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_santos2019), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Santos2019**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, santos2019_wtF$uniprot)
+g_prihits_santos2019 <- extdrg_prihitsF %>%
+                        filter(uniprot %in% up_common) %>%
+                        arrange(symbol) %>%
+                        mutate(id = 1:n()) %>%
+                        select(id, symbol, uniprot, name)
+                        
+
+g_prihits_santos2019 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+
+
+### Hutt CFTR interactome (2018)
+
+J Mol Biol (2018) 430: 2951-2973  
+**A Proteomic Variant Approach (ProVarA) for Personalized Medicine of Inherited and Somatic Disease**  
+Darren M. Hutt, Salvatore Loguercio, Alexandre Rosa Campos and William E. Balch
+<https://doi.org/10.1016/j.jmb.2018.06.017>
+
+A cohort of proteins that are differentially interacting with a broad spectrum of CFTR variants (including F508del) in CFBE cells, identified through a co-purifying protein identification technology (CoPIT) methodology [23], an
+immunoprecipitation-based proteomic approach: ProVarA.  
+
+The authors create a proteomic methodology called proteomic variant approach (ProVarA), which uses the CoPIT methodoly in order capture critical protein interaction profiles (PIPs) to understand the onset and progression of variant-specific disease. They apply this method to 1) interrogate the impact of different CF-causing mutations on the functional interactions of CFTR, as well as 2) assess the impact of therapeutics on the profiles of the disease-causing variants. Besides mapping the PIPs, the authors are also able to pinpoint the binding affinities of the proteins within the PIPs, which is one of the greatest strengths of this methodology. This work was performed on CFBE41o- transiently transfected with CFTR variants.  
+
+An important outcome of this study are the PIPs for WT- and F508del-CFTR in Table S1 and S2 respectively. Other outputs include PIPs for other CFTR variants (i.e. G85E, R560T, N1303K and G551D) as well as G551D-CFTR treated with VX-770 and F508del-CFTR treated with VX-809. Importantly, the PIPs for each condition were selected if they exhibited a statistically significant difference in recovery relative to the control CFTR immunoprecipitation in GFP transduced CFBE41o- null cells.  
+
+```{r hutt2018, results='hide', message=FALSE, warning=FALSE}
+# wt-CFTR interactome
+# Get data
+if(file.exists(path_hutt2018_wt)){
+  
+    hutt2018_wt <- read_csv(path_hutt2018_wt)
+    
+} else{
+
+    tmp    <- tempfile()
+    download.file(url = src_hutt2018_wt, destfile = tmp, mode="wb")
+
+    df    <- tibble(read.xlsx(tmp, sheet = 2)) %>%
+             mutate(intensity = as.numeric(.[[4]])) %>%
+             filter(!is.na(intensity))
+    up0   <- df$Proteins
+    up    <- unlist(strsplit(up0, ";"))
+    gene  <- uniprot_to_genesymbol(up)
+    up_na <- up[which(is.na(gene))]
+    gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+    
+    hutt2018_wt <- tibble(symbol  = gene,
+                          uniprot = up,
+                          ensembl = ensg,
+                          entrez  = id,
+                          name    = gname)
+      
+    write.csv(hutt2018_wt, path_hutt2018_wt, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+bad_up       <- extraids %>%
+                filter(!is.na(uniprot) & !in_database & uniprot %in% hutt2018_wt$uniprot) %>% 
+                pull(uniprot)                       # Deprecated Uniprot IDs
+
+hutt2018_wtF <- hutt2018_wt %>%
+                group_by(uniprot) %>%
+                slice(1) %>%                # Remove duplicate uniprot IDs
+                ungroup() %>%
+                filter(!is.na(uniprot)) %>%     # Remove unknowns
+                filter(!uniprot %in% bad_up)
+
+n_hutt2018_wt  <- nrow(hutt2018_wt)
+n_hutt2018_wtF <- nrow(hutt2018_wtF)
+
+
+
+# F508del-CFTR-CFTR interactome
+# Get data
+if(file.exists(path_hutt2018_df)){
+  
+    hutt2018_df <- read_csv(path_hutt2018_df)
+    
+} else{
+
+    tmp    <- tempfile()
+    download.file(url = src_hutt2018_df, destfile = tmp, mode="wb")
+
+    df    <- tibble(read.xlsx(tmp, sheet = 2)) %>%
+             mutate(intensity = as.numeric(.[[4]])) %>%
+             filter(!is.na(intensity))
+    up0   <- df$Proteins
+    up    <- unlist(strsplit(up0, ";"))
+    gene  <- uniprot_to_genesymbol(up)
+    up_na <- up[which(is.na(gene))]
+    gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+    
+    hutt2018_df <- tibble(symbol  = gene,
+                          uniprot = up,
+                          ensembl = ensg,
+                          entrez  = id,
+                          name    = gname)
+      
+    write.csv(hutt2018_df, path_hutt2018_df, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+bad_up       <- extraids %>%
+                filter(!is.na(uniprot) & !in_database & uniprot %in% hutt2018_df$uniprot) %>% 
+                pull(uniprot)                       # Deprecated Uniprot IDs
+
+hutt2018_dfF <- hutt2018_df %>%
+                group_by(uniprot) %>%
+                slice(1) %>%                # Remove duplicate uniprot IDs
+                ungroup() %>%
+                filter(!is.na(uniprot)) %>%     # Remove unknowns
+                filter(!uniprot %in% bad_up)
+
+n_hutt2018_df  <- nrow(hutt2018_df)
+n_hutt2018_dfF <- nrow(hutt2018_dfF)
+```
+
+**wt-CFTR interactome:**\
+\* All data: `r n_hutt2018_wt` genes.\
+\* After name updating: `r n_hutt2018_wtF` genes.
+
+**F508del-CFTR interactome:**\
+\* All data: `r n_hutt2018_df` genes.\
+\* After name updating: `r n_hutt2018_dfF` genes.
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_hutt2018 <- list(primary_hits     = extdrg_prihitsF$uniprot, 
+                                   confirmed_hits   = extdrg_cnfhitsF$uniprot,
+                                   hutt2018_wtF     = hutt2018_wtF$uniprot,
+                                   hutt2018_dfF     = hutt2018_dfF$uniprot,
+                                   DGKG  = "P49619",
+                                   GRK5  = "P34947",
+                                   LRRK1 = "Q38SD2",
+                                   STYK1 = "Q6J9G0",
+                                   TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_hutt2018), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Hutt2018**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, hutt2018_dfF$uniprot)
+g_prihits_hutt2018 <- extdrg_prihitsF %>%
+                      filter(uniprot %in% up_common) %>%
+                      arrange(symbol) %>%
+                      mutate(id = 1:n()) %>%
+                      select(id, symbol, uniprot, name)
+                        
+
+g_prihits_hutt2018 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+
+
+### Rauniyar CFTR proteome (2014)
+
+J Proteome Res (2014) 13(11): 4668-4675  
+**Quantitative Proteomic Profiling Reveals Differentially Regulated Proteins in Cystic Fibrosis Cells**  
+Navin Rauniyar, Vijay Gupta, William E. Balch, and John R. Yates, III  
+<https://doi.org/10.1021/pr500370g>
+
+Differential protein expression between a cell line model of cystic fibrosis (i.e., bronchial epithelial cells expressing F508del-CFTR (CFBE cells)) and wild-type CFTR (HBE cells).  
+
+The authors use LC-MS/MS and the MudPIT method to investigate the differential protein expression between a cell line model of cystic fibrosis (i.e., bronchial epithelial cells expressing F508del-CFTR, CFBE cells) and wild-type CFTR (HBE cells). This is a global proteomics approach to understand how mutant CFTR may lead to perturbed molecular pathways.  
+
+The most important outcome of this study is the raw data presented in Table S1, which contains the list of identified proteins from the HBE (sheet 1) and CFBE (sheet 2), as well as a common proteins list (sheet 3). Although the authors include all the data they obtained, they advise (correctly) to only consider the proteins that were present in all three biological replicates, which is indicated by the column “Occurrence” (occurrence = 3). These are 3586 proteins for the HBE cells, and 3566 for the CFBE cells. Uniprot ID information is also present in this table. 
+
+
+To be done.
+
+\newpage
+
+
+### Almaça ENaC interactome (2013)
+
+Cell (2013) 154(6):1390-400\
+**High-content siRNA screen reveals global ENaC regulators and potential cystic fibrosis therapy targets**\
+Joana Almaça, Diana Faria, Marisa Sousa, Inna Uliyakina, Christian Conrad, Lalida Sirianant, Luka A Clarke, José Paulo Martins, Miguel Santos, Jean-Karim Heriché, Wolfgang Huber, Rainer Schreiber, Rainer Pepperkok, Karl Kunzelmann, Margarida D Amaral\
+<https://doi.org/10.1016/j.cell.2013.08.045>
+
+```{r almaca2013, results='hide', message=FALSE, warning=FALSE}
+# Validated ENaC hits
+# Get data
+if(file.exists(path_almaca2013)){
+  
+    almaca2013 <- read_csv(path_almaca2013)
+    
+} else{
+
+    tmp     <- tempfile()
+    download.file(url = src_almaca2013, destfile = tmp, mode="wb")
+
+    df      <- tibble(read.xlsx(tmp, sheet = 2, startRow = 5)) %>%
+               filter(!is.na(Ensemble.ID))
+    ensg0   <- df$Ensemble.ID
+    up      <- ensembl_to_uniprot(ensg0)
+    ensg_na <- ensg0[which(is.na(up))]                                        # Emsembl IDs for which a gene symbol could not be found
+    up[is.na(up)] <- extraids[match(ensg_na, extraids$ensembl), "uniprot"]    # Add missing uniprot IDs
+    gene    <- uniprot_to_genesymbol(up)
+    ensg    <- uniprot_to_ensembl(up)
+    id      <- uniprot_to_geneid(up)
+    gname   <- uniprot_to_genename(up, parallelize = TRUE)
+
+    almaca2013  <- tibble(symbol  = gene,
+                          uniprot = up,
+                          ensembl = ensg,
+                          entrez  = id,
+                          name    = gname)
+      
+    write.csv(almaca2013, path_almaca2013, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+almaca2013F <- almaca2013 %>%
+               group_by(uniprot) %>%
+               slice(1) %>%                # Remove duplicate uniprot IDs
+               ungroup() %>%
+               filter(!is.na(uniprot))     # Remove unknowns
+
+n_almaca2013  <- nrow(almaca2013)
+n_almaca2013F <- nrow(almaca2013F)
+```
+
+**ENaC activating genes:**\
+\* All data: `r n_almaca2013` genes.\
+\* After name updating: `r n_almaca2013F` genes.
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_almaca2013 <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                     confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                     almaca2013     = almaca2013F$uniprot,
+                                     DGKG  = "P49619",
+                                     GRK5  = "P34947",
+                                     LRRK1 = "Q38SD2",
+                                     STYK1 = "Q6J9G0",
+                                     TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_almaca2013), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Almaça2013**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, almaca2013F$uniprot)
+g_prihits_almaca2013 <- extdrg_prihitsF %>%
+                        filter(uniprot %in% up_common) %>%
+                        arrange(symbol) %>%
+                        mutate(id = 1:n()) %>%
+                        select(id, symbol, uniprot, name)
+                        
+g_prihits_almaca2013 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+### Tomati CFTR regulome (2018)
+
+J Biol Chem (2018) 293(4):1203-1217
+
+**High-throughput screening identifies FAU protein as a regulator of mutant cystic fibrosis transmembrane conductance regulator channel**\
+Valeria Tomati, Emanuela Pesce, Emanuela Caci, Elvira Sondo, Paolo Scudieri, Monica Marini, Felice Amato, Giuseppe Castaldo, Roberto Ravazzolo, Luis J.V.Galietta, Nicoletta Pedemonte\
+[https://doi.org/10.1074/jbc.M117.816595]((https://doi.org/10.1016/j.cell.2013.08.045))
+
+Genes whose silencing significantly rescued F508del-CFTR activity, as indicated by enhanced anion transport through the plasma membrane.  
+
+The authors performed the first genome-wide screening of a druggable-genome library of siRNA molecules in bronchial epithelial cells to find proteins whose suppression results in a significant functional and biochemical rescue of F508del-CFTR. They were able to find 37 validated targets, which are displayed in the paper itself in Table 1. They then dissect some of them, particularly FAU, regarding their MoA.  
+
+```{r tomati2018, results='hide', message=FALSE, warning=FALSE}
+
+if(file.exists(path_tomati2018)){
+
+    tomati2018 <- read_csv(path_tomati2018)
+
+} else{
+  
+    # Transcribe data
+    df <- tibble(gene = c("ALOX5AP","ANXA11","CDK6","CHD4","CNTN1","CSNK2A1","FAU","FRAG1","GALK1",
+                          "GJA5","GJB4","GPR149","KCTD8","LRRC59","MLLT6","NR2E3","P2RX1","PHF12",
+                          "PLXNA1","PLXND1","PRPS1","PTCH1","RARA","RBBP6","RNF207","RORB","SEC22B",
+                          "SGK223","SLC25A1","SNRNP25","TLR7","TRIM24","UBA2","UBA52","UBE2C","UBE2I","UBXN6"),
+                mean = c(1.302,1.307,1.342,1.787,1.309,1.395,1.621,1.382,1.304,1.346,1.293,1.445,1.4,1.37,
+                         1.501,1.419,1.291,1.49,1.484,1.295,1.322,1.425,1.31,1.472,1.449,1.328,1.365,1.411,
+                         1.303,1.519,1.376,1.739,1.653,1.922,1.357,1.639,1.366),
+                 uniprot = c("P20292", "P50995", "Q00534", "Q14839", "Q12860", "P68400", "P62861/P35544", 
+                             "Q9UHJ9", "P51570", "P36382", "Q9NTQ9", "Q86SP6", "Q6ZWB6", "Q96AG4", 
+                             "P55198", "Q9Y5X4", "P51575", "Q96QT6", "Q9UIW2", "Q9Y4D7", "P60891", 
+                             "Q13635", "P10276", "Q7Z6E9", "Q6ZRF8", "Q92753", "O75396", "Q86YV5", 
+                             "P53007", "Q9BV90", "Q9NYK1", "O15164", "Q9UBT2", "P62987", "O00762", 
+                             "P63279", "Q9BZV1"))
+    
+    up    <- sub("(.*)/(.*)", "\\1", df$uniprot)
+    gene  <- uniprot_to_genesymbol(up)
+    up_na <- up[which(is.na(gene))]
+    gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = T)
+
+    tomati2018  <- tibble(symbol  = gene,
+                          uniprot = up,
+                          ensembl = ensg,
+                          entrez  = id,
+                          name    = gname,
+                          score   = df$mean)
+    
+    write.csv(tomati2018, path_tomati2018, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+tomati2018F <- tomati2018 %>%
+               group_by(uniprot) %>%
+               slice(1) %>%                # Remove duplicate uniprot IDs
+               ungroup() %>%
+               filter(!is.na(uniprot))     # Remove unknowns
+
+n_tomati2018  <- nrow(tomati2018)
+n_tomati2018F <- nrow(tomati2018F)
+```
+
+-   **F508del-CFTR regulome:** `r n_tomati2018` genes.
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_tomati2018 <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                     confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                     tomati2018     = tomati2018F$uniprot,
+                                     DGKG  = "P49619",
+                                     GRK5  = "P34947",
+                                     LRRK1 = "Q38SD2",
+                                     STYK1 = "Q6J9G0",
+                                     TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_tomati2018), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Tomati2018**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, tomati2018F$uniprot)
+g_prihits_tomati2018 <- extdrg_prihitsF %>%
+                        filter(uniprot %in% up_common) %>%
+                        arrange(symbol) %>%
+                        mutate(id = 1:n()) %>%
+                        select(id, symbol, uniprot, name)
+                        
+g_prihits_tomati2018 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+### Simpson secretome (2012)
+
+Nature Cell Biology (2012) 14, 764--774\
+**Genome-wide RNAi screening identifies human proteins with a regulatory function in the early secretory pathway**\
+Jeremy C. Simpson, Brigitte Joggerst, Vibor Laketa, Fatima Verissimo, Cihan Cetin, Holger Erfle, Mariana G. Bexiga, Vasanth R. Singan, Jean-Karim Hériché, Beate Neumann, Alvaro Mateos, Jonathon Blake, Stephanie Bechtel, Vladimir Benes, Stefan Wiemann, Jan Ellenberg & Rainer Pepperkok\
+<https://doi.org/10.1038/ncb2510>
+
+Proteins influencing secretion of tsO45G in HeLa cells.
+
+```{r simpson2012, results='hide', message=FALSE, warning=FALSE}
+# Get data
+if(file.exists(path_simpson2012)){
+  
+    simpson2012 <- read_csv(path_simpson2012)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_simpson2012, destfile = tmp, mode="wb")
+
+    df      <- tibble(read_excel(tmp))
+    ensg0   <- df[["ENSEMBL ID"]]
+    up      <- ensembl_to_uniprot(ensg0)
+    ensg_na <- ensg0[which(is.na(up))]
+    up[is.na(up)] <- extraids[match(ensg_na, extraids$ensembl), "uniprot"]
+    gene    <- uniprot_to_genesymbol(up)                                            # Get gene symbols
+    ensg    <- uniprot_to_ensembl(up)
+    id      <- uniprot_to_geneid(up)
+    gname   <- uniprot_to_genename(up, parallelize = TRUE)
+
+    simpson2012 <- tibble(symbol  = gene,
+                          uniprot = up,
+                          ensembl = ensg,
+                          entrez  = id,
+                          name    = gname)
+      
+    write.csv(simpson2012, path_simpson2012, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+simpson2012F   <- simpson2012 %>%
+                      group_by(uniprot) %>%
+                      slice(1) %>%                # Remove duplicate uniprot IDs
+                      ungroup() %>%
+                      filter(!is.na(uniprot))     # Remove unknowns
+
+n_simpson2012  <- nrow(simpson2012)
+n_simpson2012F <- nrow(simpson2012F)
+```
+
+**Traffic regulating genes:**\
+\* All data: `r n_simpson2012` genes.\
+\* After name updating: `r n_simpson2012` genes.
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_simpson2012 <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                      confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                      simpson2012    = simpson2012F$uniprot,
+                                      DGKG  = "P49619",
+											                GRK5  = "P34947",
+											                LRRK1 = "Q38SD2",
+											                STYK1 = "Q6J9G0",
+											                TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_simpson2012), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Simpson2012**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, simpson2012F$uniprot)
+g_prihits_tomati2018 <- extdrg_prihitsF %>%
+                        filter(uniprot %in% up_common) %>%
+                        arrange(symbol) %>%
+                        mutate(id = 1:n()) %>%
+                        select(id, symbol, uniprot, name)
+                        
+g_prihits_tomati2018 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+**Confirmed traffic hits & Simpson2012**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_cnfhitsF$uniprot, simpson2012F$uniprot)
+g_cnfhits_tomati2018 <- extdrg_prihitsF %>%
+                        filter(uniprot %in% up_common) %>%
+                        arrange(symbol) %>%
+                        mutate(id = 1:n()) %>%
+                        select(id, symbol, uniprot, name)
+                        
+g_cnfhits_tomati2018 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+### Wang interactome (2006)
+
+Cell (2006) 127(4):803-815\
+**Hsp90 Cochaperone Aha1 Downregulation Rescues Misfolding of CFTR in Cystic Fibrosis**\
+Xiaodong Wang, John Venable, Paul LaPointe, Darren M. Hutt, Atanas V. Koulov, Judith Coppinger, Cemal Gurkan, Wendy Kellner, Jeanne Matteson, Helen Plutner, John R. Riordan, Jeffery W. Kelly, John R. Yates III, William E. Balch\
+<https://doi.org/10.1016/j.cell.2006.09.043>
+
+CFTR-specific proteomes immunoprecipitated from matched BHK cell lines heterologously expressing wt- or F508del-CFTR.  
+
+The authors apply mass spectrometry through the use of multidimensional protein identification technology (MudPIT) to begin to define the global protein interactions of CFTR – the CFTR interactome. The work is mostly focused on the ER folding and export proteome, but other wt-CFTR interactors were also found, and some are even discussed in the supplemental discussion.  
+
+Experiments were conducted on 4 different cell lines: BHK (kidney, hamster), Calu-3 (lung, human), HT29 (intestine, human), and T84 (intestine, human). Interestingly all the human cell lines are cancer cell lines. Might make sense to consider the full interactome (167 proteins), Table S1, or simply the Calu-3 interactome, Table S5 Protein (50 proteins). Experiments were also conducted on BHK F508del-CFTR cells, but these should probably not be considered.  
+
+
+```{r wang2006, results='hide', message=FALSE, warning=FALSE}
+# wt-CFTR Interactome in BHK cells
+# Get data
+if(file.exists(path_wang2006_wt)){
+  
+    wang2006_wt <- read_csv(path_wang2006_wt)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_wang2006, destfile = tmp, mode="wb")
+
+    df    <- tibble(read_excel(tmp, sheet = 3))
+    id0   <- df[[1]]
+    up    <- geneid_to_uniprot(id0)
+    id_na <- id0[which(is.na(up))]                                               # Gene IDs for which a uniprot ID could not be found
+    up[is.na(up)] <- extraids[match(id_na, extraids$entrez), "uniprot"]       # Add missing uniprot IDs
+    gene  <- uniprot_to_genesymbol(up)                                            # Get gene symbols
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    wang2006_wt  <- tibble(symbol  = gene,
+                           uniprot = up,
+                           ensembl = ensg,
+                           entrez  = id,
+                           name    = gname)
+      
+    write.csv(wang2006_wt, path_wang2006_wt, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+wang2006_wtF   <- wang2006_wt %>%
+                      group_by(uniprot) %>%
+                      slice(1) %>%                # Remove duplicate uniprot IDs
+                      ungroup() %>%
+                      filter(!is.na(uniprot))     # Remove unknowns
+
+n_wang2006_wt  <- nrow(wang2006_wt)
+n_wang2006_wtF <- nrow(wang2006_wtF)
+
+
+# F508del-CFTR Interactome in BHK cells
+# Get data
+if(file.exists(path_wang2006_df)){
+  
+    wang2006_df <- read_csv(path_wang2006_df)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_wang2006, destfile = tmp, mode="wb")
+
+    df    <- tibble(read_excel(tmp, sheet = 5))
+    id0   <- df[[1]]
+    up    <- geneid_to_uniprot(id0)
+    id_na <- id0[which(is.na(up))]                                               # Gene IDs for which a uniprot ID could not be found
+    up[is.na(up)] <- extraids[match(id_na, extraids$entrez), "uniprot"]       # Add missing uniprot IDs
+    gene  <- uniprot_to_genesymbol(up)                                            # Get gene symbols
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    wang2006_df  <- tibble(symbol  = gene,
+                           uniprot = up,
+                           ensembl = ensg,
+                           entrez  = id,
+                           name    = gname)
+      
+    write.csv(wang2006_df, path_wang2006_df, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+wang2006_dfF   <- wang2006_df %>%
+                      group_by(uniprot) %>%
+                      slice(1) %>%                # Remove duplicate uniprot IDs
+                      ungroup() %>%
+                      filter(!is.na(uniprot))     # Remove unknowns
+
+n_wang2006_df  <- nrow(wang2006_df)
+n_wang2006_dfF <- nrow(wang2006_dfF)
+```
+
+**wt-CFTR interactome (BHK):**\
+\* All data: `r n_wang2006_wt` genes.\
+\* After name updating: `r n_wang2006_wtF` genes.
+
+**F508del-CFTR interactome (BHK):**\
+\* All data: `r n_wang2006_df` genes.\
+\* After name updating: `r n_wang2006_dfF` genes.
+
+**Primary traffic hits & Wang2006**
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_wang2006 <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                   confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                   wang2006_wt    = wang2006_wtF$uniprot,
+                                   wang2006_df    = wang2006_dfF$uniprot,
+                                   DGKG  = "P49619",
+															     GRK5  = "P34947",
+															 	 	 LRRK1 = "Q38SD2",
+															 		 STYK1 = "Q6J9G0",
+															 		 TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_wang2006), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+\newpage
+
+### Reilly interactome (2017)
+
+Sci Rep (2017) 9;7(1):7642\
+**Targeting the PI3K/Akt/mTOR signalling pathway in Cystic Fibrosis**\
+R Reilly, M S Mroz, E Dempsey, K Wynne, S J Keely, E F McKone, C Hiebel, C Behl, J A Coppinger\
+<https://doi.org/10.1038/s41598-017-06588-z>
+
+IP-MS profiling of CFTR-containing protein complexes immunoprecipitated from CFBE41o- abd HBE41o- cells expressing F508del-CFTR and wt-CFTR, respectively.
+
+```{r reilly2017, results='hide', message=FALSE, warning=FALSE}
+# wt-CFTR Interactome
+# Get data
+if(file.exists(path_reilly2017_wt)){
+  
+    reilly2017_wt <- read_csv(path_reilly2017_wt)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_reilly2017_wt, destfile = tmp, mode="wb")
+
+    df      <- tibble(read_excel(tmp, skip = 1)) %>%
+               mutate(gene = sub("(.*)_.*$", "\\1", Accession))
+    gene0   <- df$gene
+    up      <- genesymbol_to_uniprot(gene0)
+    gene_na <- gene0[which(is.na(up))]
+    up[is.na(up)] <- extraids[match(gene_na, extraids$symbol), "uniprot"]
+    gene  <- uniprot_to_genesymbol(up)
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    reilly2017_wt  <- tibble(symbol  = gene,
+                             uniprot = up,
+                             ensembl = ensg,
+                             entrez  = id,
+                             name    = gname)
+      
+    write.csv(reilly2017_wt, path_reilly2017_wt, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+reilly2017_wtF   <- reilly2017_wt %>%
+                    group_by(uniprot) %>%
+                    slice(1) %>%                # Remove duplicate uniprot IDs
+                    ungroup() %>%
+                    filter(!is.na(uniprot))     # Remove unknowns
+
+n_reilly2017_wt  <- nrow(reilly2017_wt)
+n_reilly2017_wtF <- nrow(reilly2017_wtF)
+
+
+# F508del-CFTR Interactome
+# Get data
+if(file.exists(path_reilly2017_df)){
+  
+    reilly2017_df <- read_csv(path_reilly2017_df)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_reilly2017_df, destfile = tmp, mode="wb")
+
+    df      <- tibble(read_excel(tmp, skip = 1)) %>%
+               mutate(gene = sub("(.*)_.*$", "\\1", Accession))
+    gene0   <- df$gene
+    up      <- genesymbol_to_uniprot(gene0)
+    gene_na <- gene0[which(is.na(up))]
+    up[is.na(up)] <- extraids[match(gene_na, extraids$symbol), "uniprot"]
+    gene  <- uniprot_to_genesymbol(up)
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    reilly2017_df  <- tibble(symbol  = gene,
+                             uniprot = up,
+                             ensembl = ensg,
+                             entrez  = id,
+                             name    = gname)
+      
+    write.csv(reilly2017_df, path_reilly2017_df, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+reilly2017_dfF   <- reilly2017_df %>%
+                    group_by(uniprot) %>%
+                    slice(1) %>%                # Remove duplicate uniprot IDs
+                    ungroup() %>%
+                    filter(!is.na(uniprot))     # Remove unknowns
+
+n_reilly2017_df  <- nrow(reilly2017_df)
+n_reilly2017_dfF <- nrow(reilly2017_dfF)
+```
+
+**wt-CFTR interactome:**\
+\* All data: `r n_reilly2017_wt` genes.\
+\* After name updating: `r n_reilly2017_wtF` genes.
+
+**F508del-CFTR interactome:**\
+\* All data: `r n_reilly2017_df` genes.\
+\* After name updating: `r n_reilly2017_dfF` genes.
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_reilly2017_wt <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                        confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                        reilly2017_wt  = unique(reilly2017_wtF$uniprot),
+                                        DGKG  = "P49619",
+											                  GRK5  = "P34947",
+											                  LRRK1 = "Q38SD2",
+											                  STYK1 = "Q6J9G0",
+											                  TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_reilly2017_wt), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_reilly2017_df <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                        confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                        reilly2017_df  = unique(reilly2017_dfF$uniprot),
+                                        DGKG  = "P49619",
+											                  GRK5  = "P34947",
+											                  LRRK1 = "Q38SD2",
+											                  STYK1 = "Q6J9G0",
+											                  TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_reilly2017_df), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_reilly2017_wtdf <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                          confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                          reilly2017_wt  = unique(reilly2017_wtF$uniprot),
+                                          reilly2017_df  = unique(reilly2017_dfF$uniprot),
+                                          DGKG  = "P49619",
+											                    GRK5  = "P34947",
+											                    LRRK1 = "Q38SD2",
+											                    STYK1 = "Q6J9G0",
+											                    TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_reilly2017_wtdf), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Reilly2017 (wt)**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, reilly2017_wtF$uniprot)
+g_prihits_reilly2017_wt <- extdrg_prihitsF %>%
+                           filter(uniprot %in% up_common) %>%
+                           arrange(symbol) %>%
+                           mutate(id = 1:n()) %>%
+                           select(id, symbol, uniprot, name)
+                        
+g_prihits_reilly2017_wt %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+**Primary traffic hits & Reilly2017 (F508del)**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, reilly2017_dfF$uniprot)
+g_prihits_reilly2017_df <- extdrg_prihitsF %>%
+                           filter(uniprot %in% up_common) %>%
+                           arrange(symbol) %>%
+                           mutate(id = 1:n()) %>%
+                           select(id, symbol, uniprot, name)
+                        
+g_prihits_reilly2017_df %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+**Primary traffic hits & Reilly2017 (wt & F508del)**
+
+```{r, echo=FALSE}
+up_common <- Reduce(intersect, list(extdrg_prihitsF$uniprot,
+                                    reilly2017_wtF$uniprot,
+                                    reilly2017_dfF$uniprot))
+
+g_prihits_reilly2017_wtdf <- extdrg_prihitsF %>%
+                             filter(uniprot %in% up_common) %>%
+                             arrange(symbol) %>%
+                             mutate(id = 1:n()) %>%
+                             select(id, symbol, uniprot, name)
+                        
+g_prihits_reilly2017_wtdf %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+### Gilchrist secretome (2006)
+
+Cell (2006) 127(6):1265-1281\
+**Quantitative Proteomics Analysis of the Secretory Pathway**\
+Annalyn Gilchrist, Catherine E. Au, Johan Hiding, Alexander W. Bell, Julia Fernandez-Rodriguez, Souad Lesimple, Hisao Nagaya, Line Roy, Sara J.C. Gosline, Michael Hallett, Jacques Paiement, Robert E. Kearney, Tommy Nilsson, John J.M. Bergeron\
+<https://doi.org/10.1016/j.cell.2006.10.036>
+
+Secretory pathway proteome, with information about the intracellular localization and relative presence of each protein in the rough and smooth ER, Golgi cisternae and Golgi-derived COPI vesicles.
+
+I did not manage to analyze these data because I could not process the gene identifiers: NCBI gi numbers.  
+
+\newpage
+
+
+
+### Pankow CFTR interactome and PTM modifications (2019)
+
+Sci Signal (2019) 12(562):eaan7984\
+**A posttranslational modification code for CFTR maturation is altered in cystic fibrosis**\
+Sandra Pankow, Casimir Bamberger, John R Yates 3rd\
+<https://doi.org/10.1126/scisignal.aan7984>
+
+wt-CFTR interactome upon treatment with CX-4945 (also known as silmitasertib, a competitive inhibitor of CK2alpha).
+
+```{r pankow2019, results='hide', message=FALSE, warning=FALSE}
+# wild-type CFTR interactome upon CX-4945 treatment
+# Get data
+if(file.exists(path_pankow2019)){
+  
+    pankow2019 <- read_csv(path_pankow2019)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_pankow2019, destfile = tmp, mode="wb")
+
+    df      <- tibble(read.xlsx(tmp)) %>%
+               filter(Protein.evidence == "CONCLUSIVE") %>%
+               rename(uniprot = `ACC(s)`) %>%
+               mutate(uniprot = gsub("Reverse_", "", uniprot))
+    up    <- df$uniprot
+    gene  <- uniprot_to_genesymbol(up)
+    up_na <- up[which(is.na(gene))]
+    gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    pankow2019  <- tibble(symbol  = gene,
+                          uniprot = up,
+                          ensembl = ensg,
+                          entrez  = id,
+                          name    = gname)
+      
+    write.csv(pankow2019, path_pankow2019, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+pankow2019F   <- pankow2019 %>%
+                 group_by(uniprot) %>%
+                 slice(1) %>%                # Remove duplicate uniprot IDs
+                 ungroup() %>%
+                 filter(!is.na(uniprot))     # Remove unknowns
+
+n_pankow2019  <- nrow(pankow2019)
+n_pankow2019F <- nrow(pankow2019F)
+```
+
+**wt-CFTR interactome, CX-4945:**\
+\* All data: `r n_pankow2019` genes.\
+\* After name updating: `r n_pankow2019F` genes.
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_pankow2019 <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                     confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                     pankow2019  = unique(pankow2019F$uniprot),
+                                     DGKG  = "P49619",
+											               GRK5  = "P34947",
+										                 LRRK1 = "Q38SD2",
+											               STYK1 = "Q6J9G0",
+											               TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_pankow2019), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, pankow2019F$uniprot)
+g_prihits_pankow2019 <- extdrg_prihitsF %>%
+                        filter(uniprot %in% up_common) %>%
+                        arrange(symbol) %>%
+                        mutate(id = 1:n()) %>%
+                        select(id, symbol, uniprot, name)
+                        
+g_prihits_pankow2019 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+### Dang (2020)
+
+PLoS One (2020) 15(11):e0239189\
+**Mining GWAS and eQTL data for CF lung disease modifiers by gene expression imputation**\
+Hong Dang, Deepika Polineni, Rhonda G Pace, Jaclyn R Stonebraker, Harriet Corvol, Garry R Cutting, Mitchell L Drumm, Lisa J Strug, Wanda K O'Neal, Michael R Knowles\
+<https://doi.org/10.1371/journal.pone.0239189>
+
+Candidate modifier genes of CF lung disease. Obtained from an integrted analysis of expression data from CF cohorts and Genotype-Tissue Expression (GTEx) reference data sets from multiple human tissues to generate predictive models, which were used to impute transcriptional regulation from genetic variance in a GWAS population.
+
+```{r dang2020, results='hide', message=FALSE, warning=FALSE}
+# lung disease modifier genes
+# Get data
+if(file.exists(path_dang2020)){
+  
+    dang2020 <- read_csv(path_dang2020)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_dang2020, destfile = tmp, mode="wb")
+
+    df      <- tibble(read.xlsx(tmp))
+    ensg0   <- df$ENSGID
+    up      <- ensembl_to_uniprot(ensg0)
+    ensg_na <- ensg0[which(is.na(up))]
+    up[is.na(up)] <- extraids[match(ensg_na, extraids$ensembl), "uniprot"]
+    gene  <- uniprot_to_genesymbol(up)                                            # Get gene symbols
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    dang2020  <- tibble(symbol  = gene,
+                        uniprot = up,
+                        ensembl = ensg,
+                        entrez  = id,
+                        name    = gname)
+      
+    write.csv(dang2020, path_dang2020, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+dang2020F   <- dang2020 %>%
+               group_by(uniprot) %>%
+               slice(1) %>%                # Remove duplicate uniprot IDs
+               ungroup() %>%
+               filter(!is.na(uniprot))     # Remove unknowns
+
+n_dang2020  <- nrow(dang2020)
+n_dang2020F <- nrow(dang2020F)
+```
+
+-   **CF modifier genes:**  
+-   All data: `r n_dang2020` genes.\
+-   After name updating and excluding non-protein coding genes: `r n_dang2020F` genes.
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_dang2020 <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                   confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                   dang2020  = unique(dang2020F$uniprot),
+                                   DGKG  = "P49619",
+											             GRK5  = "P34947",
+											             LRRK1 = "Q38SD2",
+											             STYK1 = "Q6J9G0",
+											             TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_dang2020), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Dang2020**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, dang2020F$uniprot)
+g_prihits_dang2020 <- extdrg_prihitsF %>%
+                      filter(uniprot %in% up_common) %>%
+                      arrange(symbol) %>%
+                      mutate(id = 1:n()) %>%
+                      select(id, symbol, uniprot, name)
+                        
+g_prihits_dang2020 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+**Confirmed traffic hits & Dang2020**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_cnfhitsF$uniprot, dang2020F$uniprot)
+g_cnfhits_dang2020 <- extdrg_cnfhitsF %>%
+                      filter(uniprot %in% up_common) %>%
+                      arrange(symbol) %>%
+                      mutate(id = 1:n()) %>%
+                      select(id, symbol, uniprot, name)
+                        
+g_cnfhits_dang2020 %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+### Hodos (2020)
+
+Sci Rep (2020) 10(1):20553\
+**Integrative genomic meta‑analysis reveals novel molecular insights into cystic fibrosis and deltaF508‑CFTR rescue**\
+Rachel A Hodos, Matthew D Strub, Shyam Ramachandran, Li Li, Paul B McCray Jr, Joel T Dudley\
+<http://dx.doi.org/10.1038/s41598-020-76347-0>
+
+Meta analyiss of publicly available datasets. CFTR Gene Set Library comprising 60 gene sets with various associations to CF or CFTR.  
+
+This work is the largest CF transcriptomic meta-analysis to date, having the advantage of being a quantitative meta-analysis, combining fold-change estimates across studies.  
+
+A major output of this work is the CFTR Gene Set Library compiled from 60 gene sets from 34 publications, which should be of great interest to future genomic studies of CF and CFTR.  
+
+
+```{r Hodos2020, results='hide', message=FALSE, warning=FALSE}
+# Differentially expressed genes
+# Get data
+if(file.exists(path_hodos2020_deg)){
+  
+    hodos2020_deg <- read_csv(path_hodos2020_deg)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_hodos2020_deg, destfile = tmp, mode="wb")
+    
+    names_sh <- getSheetNames(tmp)
+    df       <- lapply(1:length(names_sh), function(x){
+                    temp <- read.xlsx(tmp, sheet = x)
+                    temp$signature <- names_sh[x]
+                    temp
+    })
+    df <- tibble(do.call(rbind, df))
+    
+    id0   <- df$GeneID
+    up    <- geneid_to_uniprot(id0)
+    id_na <- id0[which(is.na(up))]
+    up[is.na(up)] <- extraids[match(id_na, extraids$entrez), "uniprot"]
+    gene  <- uniprot_to_genesymbol(up)
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    hodos2020_deg  <- tibble(symbol  = gene,
+                             uniprot = up,
+                             ensembl = ensg,
+                             entrez  = id,
+                             name    = gname,
+                             signature = df$signature)
+      
+    write.csv(hodos2020_deg, path_hodos2020_deg, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+hodos2020_degF <- hodos2020_deg %>%
+                  group_by(uniprot) %>%
+                  slice(1) %>%                # Remove duplicate uniprot IDs
+                  ungroup() %>%
+                  filter(!is.na(uniprot))     # Remove unknowns
+
+n_hodos2020_deg  <- nrow(hodos2020_deg)
+n_hodos2020_degF <- nrow(hodos2020_degF)
+
+
+
+# Core Gene Signatures
+# Get data
+if(file.exists(path_hodos2020_cosig)){
+  
+    hodos2020_cosig <- read_csv(path_hodos2020_cosig)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_hodos2020_cosig, destfile = tmp, mode="wb")
+    
+    names_sh <- getSheetNames(tmp)
+    df       <- lapply(1:length(names_sh), function(x){
+                    temp <- read.xlsx(tmp, sheet = x)
+                    temp <- temp[,c("Symbol",	"GeneID")]
+                    temp$signature <- names_sh[x]
+                    temp
+    })
+    df <- tibble(do.call(rbind, df))
+    
+    id0   <- df$GeneID
+    up    <- geneid_to_uniprot(id0)
+    id_na <- id0[which(is.na(up))]
+    up[is.na(up)] <- extraids[match(id_na, extraids$entrez), "uniprot"]
+    gene  <- uniprot_to_genesymbol(up)
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    hodos2020_cosig  <- tibble(symbol  = gene,
+                               uniprot = up,
+                               ensembl = ensg,
+                               entrez  = id,
+                               name    = gname,
+                               signature = df$signature)
+      
+    write.csv(hodos2020_cosig, path_hodos2020_cosig, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+hodos2020_cosigF <- hodos2020_cosig %>%
+                    group_by(uniprot) %>%
+                    slice(1) %>%                # Remove duplicate uniprot IDs
+                    ungroup() %>%
+                    filter(!is.na(uniprot))     # Remove unknowns
+
+n_hodos2020_cosig  <- nrow(hodos2020_cosig)
+n_hodos2020_cosigF <- nrow(hodos2020_cosigF)
+
+
+
+# Gene Signatures
+# Get data
+if(file.exists(path_hodos2020_allsig)){
+  
+    hodos2020_allsig <- read_csv(path_hodos2020_allsig)
+    
+} else{
+
+    tmp   <- tempfile()
+    download.file(url = src_hodos2020_allsig, destfile = tmp, mode="wb")
+    
+    df    <- tibble(read_excel(tmp)) %>%
+             select(`Gene Set`, `Entrez IDs`) %>%
+             rename(gene_set = `Gene Set`,
+                    entrez   = `Entrez IDs`) %>%
+             separate_rows(entrez, sep = ", ")
+    
+    id0   <- df$entrez
+    up    <- geneid_to_uniprot(id0)
+    id_na <- id0[which(is.na(up))]
+    up[is.na(up)] <- extraids[match(id_na, extraids$entrez), "uniprot"]
+    gene  <- uniprot_to_genesymbol(up)
+    ensg  <- uniprot_to_ensembl(up)
+    id    <- uniprot_to_geneid(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+
+    hodos2020_allsig  <- tibble(symbol  = gene,
+                                uniprot = up,
+                                ensembl = ensg,
+                                entrez  = id,
+                                name    = gname,
+                                geneset = df$gene_set)
+      
+    write.csv(hodos2020_allsig, path_hodos2020_allsig, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+hodos2020_allsigF <- hodos2020_allsig %>%
+                     group_by(uniprot) %>%
+                     slice(1) %>%                # Remove duplicate uniprot IDs
+                     ungroup() %>%
+                     filter(!is.na(uniprot))     # Remove unknowns
+
+n_hodos2020_allsig  <- nrow(hodos2020_allsig)
+n_hodos2020_allsigF <- nrow(hodos2020_allsigF)
+```
+
+**CF differentially expressed genes:**  
+\* All data: `r n_hodos2020_deg` genes.  
+\* After name updating and excluding non-protein coding genes: `r n_hodos2020_degF` genes.  
+
+**Core Gene Signatures:**  
+\* All data: `r n_hodos2020_cosig` genes.  
+\* After name updating and excluding non-protein coding genes: `r n_hodos2020_cosigF` genes.  
+
+**All Gene Signatures:**  
+\* All data: `r n_hodos2020_allsig` genes.  
+\* After name updating and excluding non-protein coding genes: `r n_hodos2020_allsigF` genes.  
+
+
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_hodos2020deg <- list(primary_hits   = extdrg_prihitsF$uniprot, 
+                                       confirmed_hits = extdrg_cnfhitsF$uniprot,
+                                       hodos2020_DEGs = hodos2020_degF$uniprot,
+                                       DGKG  = "P49619",
+											                 GRK5  = "P34947",
+										                   LRRK1 = "Q38SD2",
+											                 STYK1 = "Q6J9G0",
+											                 TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_hodos2020deg), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Hodos2020 DEG**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, hodos2020_degF$uniprot)
+g_prihits_hodos2020deg <- extdrg_prihitsF %>%
+                          filter(uniprot %in% up_common) %>%
+                          arrange(symbol) %>%
+                          mutate(id = 1:n()) %>%
+                          select(id, symbol, uniprot, name)
+                        
+g_prihits_hodos2020deg %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+**Confirmed traffic hits & Hodos2020 DEG**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_cnfhitsF$uniprot, hodos2020_degF$uniprot)
+g_cnfhits_hodos2020deg <- extdrg_cnfhitsF %>%
+                          filter(uniprot %in% up_common) %>%
+                          arrange(symbol) %>%
+                          mutate(id = 1:n()) %>%
+                          select(id, symbol, uniprot, name)
+                        
+g_cnfhits_hodos2020deg %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_hodos2020cosig <- list(primary_hits             = extdrg_prihitsF$uniprot, 
+                                         confirmed_hits           = extdrg_cnfhitsF$uniprot,
+                                         hodos2020_coresignatures = hodos2020_cosigF$uniprot,
+                                         DGKG  = "P49619",
+											                   GRK5  = "P34947",
+										                     LRRK1 = "Q38SD2",
+											                   STYK1 = "Q6J9G0",
+											                   TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_hodos2020cosig), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Hodos2020 core gene signatures**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, hodos2020_cosigF$uniprot)
+g_prihits_hodos2020cosig <- extdrg_prihitsF %>%
+                            filter(uniprot %in% up_common) %>%
+                            arrange(symbol) %>%
+                            mutate(id = 1:n()) %>%
+                            select(id, symbol, uniprot, name)
+                        
+g_prihits_hodos2020cosig %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+**Confirmed traffic hits & Hodos2020 core gene signatures**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_cnfhitsF$uniprot, hodos2020_cosigF$uniprot)
+g_cnfhits_hodos2020cosig <- extdrg_cnfhitsF %>%
+                            filter(uniprot %in% up_common) %>%
+                            arrange(symbol) %>%
+                            mutate(id = 1:n()) %>%
+                            select(id, symbol, uniprot, name)
+                        
+g_cnfhits_hodos2020cosig %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=4.5}
+s_prihits_cnfhits_hodos2020allsig <- list(primary_hits         = extdrg_prihitsF$uniprot, 
+                                          confirmed_hits       = extdrg_cnfhitsF$uniprot,
+                                          hodos2020_signatures = hodos2020_allsigF$uniprot,
+                                          DGKG  = "P49619",
+											                    GRK5  = "P34947",
+										                      LRRK1 = "Q38SD2",
+											                    STYK1 = "Q6J9G0",
+											                    TPK1  = "Q9H3S4")
+
+plot(euler(s_prihits_cnfhits_hodos2020allsig), shape="ellipse", quantities=list(cex=.5), labels=list(cex=.5))
+```
+
+**Primary traffic hits & Hodos2020 all gene signatures**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_prihitsF$uniprot, hodos2020_allsigF$uniprot)
+g_prihits_hodos2020allsig <- extdrg_prihitsF %>%
+                             filter(uniprot %in% up_common) %>%
+                             arrange(symbol) %>%
+                             mutate(id = 1:n()) %>%
+                             select(id, symbol, uniprot, name)
+                        
+g_prihits_hodos2020allsig %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+**Confirmed traffic hits & Hodos2020 all gene signatures**
+
+```{r, echo=FALSE}
+up_common <- intersect(extdrg_cnfhitsF$uniprot, hodos2020_allsigF$uniprot)
+g_cnfhits_hodos2020allsig <- extdrg_cnfhitsF %>%
+                             filter(uniprot %in% up_common) %>%
+                             arrange(symbol) %>%
+                             mutate(id = 1:n()) %>%
+                             select(id, symbol, uniprot, name)
+                        
+g_cnfhits_hodos2020allsig %>%
+    kbl() %>%
+    kable_paper("hover", full_width = F)
+```
+
+\newpage
+
+
+
+## Interactome summary
+
+```{r summaries, message=FALSE, warning=FALSE}
+# Concatenate all datasets
+if(file.exists(path_intfull)){
+    alldata <- read_csv(path_intfull)
+} else{
+    
+    alldataL <- list(extdrg           = extdrgF,
+                     extdrg_prihits   = extdrg_prihitsF,
+                     extdrg_cnfhits   = extdrg_cnfhitsF,
+                     pankow2015_core  = pankow2015_coreF,
+                     pankow2015_df    = pankow2015_dfF,
+                     canato2018_df    = canato2018_dfF,
+                     canato2018_4RK   = canato2018_4RKF,
+                     santos2019_wt    = santos2019_wtF,
+                     santos2019_DDAA  = santos2019_DDAAF,
+                     hutt2018_wt      = hutt2018_wtF,
+                     hutt2018_df      = hutt2018_dfF,
+                     # rauniyar
+                     almaca2013       = almaca2013F,
+                     tomati2018       = tomati2018F,
+                     simpson2012      = simpson2012F,
+                     wang2006_wt      = wang2006_wtF,
+                     wang2006_df      = wang2006_dfF,
+                     reilly2017_wt    = reilly2017_wtF,
+                     reilly2017_df    = reilly2017_dfF,
+                     # gilchrist
+                     pankow2019       = pankow2019F,
+                     dang2020         = dang2020F,
+                     hodos2020_deg    = hodos2020_degF,
+                     hodos2020_cosig  = hodos2020_cosigF,
+                     hodos2020_allsig = hodos2020_allsigF)
+    
+    alldata <- lapply(names(alldataL), function(x){
+        temp <- alldataL[[x]]
+        if(!"score" %in% names(temp)) temp$score <- NA
+        
+        temp %>%
+        mutate(dataset = x) %>%
+        select(symbol, uniprot, ensembl, entrez, name, score, dataset)
+    })
+    alldata  <- do.call(rbind, alldata)
+    
+    write.csv(alldata, path_intfull)
+}
+
+
+
+# Summary: all genes, per dataset
+# Which gene comes in which dataset
+if(file.exists(path_intsummary)){
+    datsum <- read_csv(path_intsummary)
+} else{
+
+    # One gene per line
+    datsum <- alldata %>%
+        mutate(symbol_uniprot = paste(symbol, uniprot)) %>%
+        group_by(symbol_uniprot) %>%
+        slice(1) %>%
+        ungroup() %>%
+        mutate(symbol = sub("^(.*) (.*)$", "\\1", symbol_uniprot)) %>%
+        mutate(uniprot = sub("^(.*) (.*)$", "\\2", symbol_uniprot)) %>%
+        select(symbol, uniprot)
+    
+    # Find genes in each dataset
+    for(ds in sort(unique(alldata$dataset))){
+      
+        ups <- alldata %>%
+               filter(dataset == ds) %>%
+               pull(uniprot)
+        
+        bool <- sapply(datsum$uniprot, function(x) x %in% ups)
+        datsum <- mutate(datsum, "{ds}" := bool)
+    }
+
+    write.csv(datsum, path_intsummary, row.names = FALSE)
+}
+
+
+datatable(datsum)
+# head(datsum,20)
+```
+
+## Circos plot 1
+
+```{r circos_data, warning=FALSE, message=FALSE, results='hide'}
+######################################################
+# Subset and sort datasets for Circos plot
+######################################################
+
+# Sorting: place all confirmed hits at the beginning of each data frame.
+# This should remove much of the spider web effect on the circos plot.
+
+    selected_datasets <- c("extdrg_prihits", "extdrg_cnfhits", "pankow2015_df", "almaca2013", "tomati2018", "simpson2012", "reilly2017_df", "dang2020")
+    # selected_datasets <- c("extdrg_prihits", "extdrg_cnfhits", "pankow2015_df", "almaca2013")
+    key_genes <- c("DGKG", "GRK5", "LRRK1", "STYK1", "TPK1")
+    LUT_minmax <- c(min(alldata %>% filter(dataset %in% c("extdrg_prihits", "extdrg_cnfhits")) %>% pull(score)), 3)
+
+    # Confirmed screen hits
+    c_extdrg_cnfhits <- extdrg_cnfhitsF %>% 
+                        mutate(dataset = "extdrg_cnfhits") %>%
+                        arrange(desc(score)) %>%
+                        tibble::rowid_to_column("x") %>%
+                        mutate(color = numeric_to_2color(score, colors=c("red", "green"), lutminmax=LUT_minmax, ncolors = 1000)) %>%
+                        select(symbol, uniprot, score, color, dataset, x)
+  
+    # Primary screen hits (arrange according to confirmed hits)
+    c_extdrg_prihits <- extdrg_prihitsF %>%
+                        mutate(dataset = "extdrg_prihits") %>%
+                        mutate(rank = match(uniprot, c_extdrg_cnfhits$uniprot)) %>%
+                        arrange(rank, symbol) %>%
+                        tibble::rowid_to_column("x") %>%
+                        mutate(color = numeric_to_2color(score, colors=c("red", "green"), lutminmax=LUT_minmax, ncolors = 1000)) %>%
+                        select(symbol, uniprot, score, color, dataset, x)
+                        
+    # Other datasets
+    c_others <- lapply(selected_datasets[-c(1,2)], function(ds){
+        temp <- alldata %>%
+                filter(dataset == ds) %>%
+                mutate(rank = match(uniprot, c_extdrg_prihits$uniprot)) %>%
+                arrange(rank, symbol) %>%
+                tibble::rowid_to_column("x") %>%
+                mutate(color = numeric_to_2color(NA)) %>%
+                select(symbol, uniprot, score, color, dataset, x)
+    })
+    c_others <- do.call(rbind, c_others)
+    
+    # combination
+    c_all <- do.call(rbind, list(c_extdrg_prihits, c_extdrg_cnfhits, c_others))
+
+
+
+######################################################
+# Find genes co-occurring in 2 datasets
+######################################################
+  
+    # Find pairwise dataset/sector combinations
+    sector_combinations <- combn(selected_datasets, 2)
+  
+    # Find shared genes
+    sharedg <- lapply(1:ncol(sector_combinations), function(j){
+        ds1 <- filter(c_all, dataset == sector_combinations[1,j])
+        ds2 <- filter(c_all, dataset == sector_combinations[2,j])
+        
+        ds1 %>%
+        filter(uniprot %in% ds2$uniprot) %>%
+        rename(dataset1 = dataset) %>%
+        rename(x1 = x) %>%
+        mutate(dataset2 = sector_combinations[2,j]) %>%
+        mutate(x2 = ds2[match(uniprot, ds2$uniprot),"x", drop=T])
+    })
+    sharedg <- do.call(rbind, sharedg)
+    
+    sharedg_cnfhits <- filter(sharedg, (dataset1 == "extdrg_cnfhits" & dataset2 != "extdrg_prihits") | 
+                                       (dataset2 == "extdrg_cnfhits" & dataset1 != "extdrg_prihits"))
+    sharedg_prihits <- filter(sharedg, (dataset1 == "extdrg_prihits" & dataset2 != "extdrg_cnfhits") | 
+                                       (dataset2 == "extdrg_prihits" & dataset1 != "extdrg_cnfhits"))
+    sharedg_others  <- filter(sharedg, !dataset1 %in% c("extdrg_prihits", "extdrg_cnfhits") & 
+                                       !dataset2 %in% c("extdrg_prihits", "extdrg_cnfhits"))
+    sharedg_main    <- filter(sharedg, symbol %in% key_genes) %>%
+                       filter((dataset1 == "extdrg_prihits" & dataset2 != "extdrg_cnfhits") | 
+                              (dataset2 == "extdrg_prihits" & dataset1 != "extdrg_cnfhits"))
+```
+
+```{r circos_plot, cache = TRUE, warning=FALSE, message=FALSE}
+# Start circos
+c_track1 <- filter(c_all, dataset != "extdrg_cnfhits")
+c_track2 <- filter(c_all, dataset == "extdrg_cnfhits")
+
+circos.clear()
+circos.par(gap.degree = 1)
+circos.par(cell.padding = c(0.02, 1.00, 0.02, 1.00))
+circos.initialize(c_track1$dataset, x = c_track1$x)
+
+
+
+# Outer track - Primary hits
+
+    circos.track(ylim = c(0,1))
+
+    # Add ticks and gene names
+    tdatasets <- unique(c_track1$dataset)
+    for(sector.index in tdatasets) {
+      
+        secdata <- filter(c_track1, dataset == sector.index)
+        
+        # Add labels
+        xmid <- mean(range(secdata$x))
+        circos.text(xmid, 2, sector.index, facing="bending.inside", col = "darkred", sector.index = sector.index)
+        
+        for(i in 1:nrow(secdata)){
+            x   = secdata[i, "x", drop=T]
+            lbl = secdata[i, "symbol", drop=T]
+            color = secdata[i, "color", drop=T]
+            if(is.na(color)) color <- "darkgray"
+            circos.segments(x, 0, x, 1, col = color, lwd = 1, sector.index = sector.index)
+            circos.text(x, 1, lbl, facing="clockwise", niceFacing = TRUE, adj = c(-0.5,.8), cex=.2, sector.index = sector.index)
+        }
+    }
+
+    
+
+# Inner track - confirmed hits
+# COnfirmed hits are mapped within the "extdrg_prihits" sector, since they overlap
+
+    circos.track(ylim = c(0,1), track.height=.15)
+    
+    # Add ticks and gene names
+    sector.index <- "extdrg_prihits"
+    secdata      <- c_track2
+    
+    for(i in 1:nrow(secdata)){
+        x   = secdata[i, "x", drop=T]
+        lbl = secdata[i, "symbol", drop=T]
+        color = secdata[i, "color", drop=T]
+        if(is.na(color)) color <- "darkgray"
+        circos.segments(x, 0, x, 1, col = color, lwd = 1, sector.index = sector.index)
+    }
+
+
+
+
+# Link genes
+    # Among non-traffic hits
+    for(i in 1:nrow(sharedg_others)){
+        sector1 <- sharedg_others[i, "dataset1", drop=T]
+        sector2 <- sharedg_others[i, "dataset2", drop=T]
+        x1      <- sharedg_others[i, "x1", drop=T]
+        x2      <- sharedg_others[i, "x2", drop=T]
+        circos.link(sector1, x1, sector2, x2, col="gray", lwd = .5)
+        circos.segments(x1, 0, x1, 1, col = "gray", lwd = .5, sector.index = sector1)
+        circos.segments(x2, 0, x2, 1, col = "gray", lwd = .5, sector.index = sector2)
+    }
+    
+    # Among non-confirmed hits and other datasets
+    for(i in 1:nrow(sharedg_prihits)){
+        sector1 <- sharedg_prihits[i, "dataset1", drop=T]
+        sector2 <- sharedg_prihits[i, "dataset2", drop=T]
+        x1      <- sharedg_prihits[i, "x1", drop=T]
+        x2      <- sharedg_prihits[i, "x2", drop=T]
+        circos.link(sector1, x1, sector2, x2, col="darkred")
+        if(sector1 != "extdrg_cnfhits") circos.segments(x1, 0, x1, 1, col = "darkred", lwd = 1, sector.index = sector1)
+        if(sector2 != "extdrg_cnfhits") circos.segments(x2, 0, x2, 1, col = "darkred", lwd = 1, sector.index = sector2)
+    }
+    
+    # Among confirmed hits and other datasets
+    for(i in 1:nrow(sharedg_cnfhits)){
+        sector1 <- sharedg_cnfhits[i, "dataset1", drop=T]
+        sector2 <- sharedg_cnfhits[i, "dataset2", drop=T]
+        if(sector1 == "extdrg_cnfhits") sector1 <- "extdrg_prihits"
+        if(sector2 == "extdrg_cnfhits") sector2 <- "extdrg_prihits"
+        x1      <- sharedg_cnfhits[i, "x1", drop=T]
+        x2      <- sharedg_cnfhits[i, "x2", drop=T]
+        circos.link(sector1, x1, sector2, x2, col="red", lwd = 2)
+        if(sector1 != "extdrg_cnfhits") circos.segments(x1, 0, x1, 1, col = "red", lwd = 2, sector.index = sector1)
+        if(sector2 != "extdrg_cnfhits") circos.segments(x2, 0, x2, 1, col = "red", lwd = 2, sector.index = sector2)
+    }
+    
+    # Among main hits
+    for(i in 1:nrow(sharedg_main)){
+        sector1 <- sharedg_main[i, "dataset1", drop=T]
+        sector2 <- sharedg_main[i, "dataset2", drop=T]
+        x1      <- sharedg_main[i, "x1", drop=T]
+        x2      <- sharedg_main[i, "x2", drop=T]
+        circos.link(sector1, x1, sector2, x2, col="red", lwd = 5)
+        circos.segments(x1, 0, x1, 1, col = "red", lwd = 5, sector.index = sector1)
+        circos.segments(x2, 0, x2, 1, col = "red", lwd = 5, sector.index = sector2)
+    }
+
+
+
+# Highlight key genes
+    alldataC_key <- filter(c_track1, symbol %in% key_genes)
+    for(i in 1:nrow(alldataC_key)){
+        x      <- alldataC_key[i, "x", drop=TRUE]
+        sector <- alldataC_key[i, "dataset", drop=TRUE]
+        lbl    <- alldataC_key[i, "symbol", drop=TRUE]
+        circos.segments(x, 0, x, 1, col = "yellow", lwd = 1, sector.index = sector)
+        circos.text(x, 1, lbl, facing="clockwise", niceFacing = TRUE, adj = c(2.5,0.3), cex=.5, sector.index = sector)
+    }
+```
+
+
+## Circos plot 2
+
+
+```{r circos_data2, warning=FALSE, message=FALSE, results='hide'}
+######################################################
+# Subset and sort datasets for Circos plot
+######################################################
+
+# Sorting: place all confirmed hits at the beginning of each data frame.
+# This should remove much of the spider web effect on the circos plot.
+
+selected_datasets <- c("extdrg_prihits", "extdrg_cnfhits", "pankow2015_df", "almaca2013", "canato2018_df", "tomati2018", "simpson2012", "reilly2017_df", "dang2020")
+# selected_datasets <- c("extdrg_prihits", "extdrg_cnfhits", "pankow2015_df", "almaca2013")
+key_genes <- c("DGKG", "GRK5", "LRRK1", "STYK1", "TPK1")
+LUT_minmax <- c(min(alldata %>% filter(dataset %in% c("extdrg_prihits", "extdrg_cnfhits")) %>% pull(score)), 3)
+
+# Confirmed screen hits
+c_extdrg_cnfhits <- extdrg_cnfhitsF %>% 
+  mutate(dataset = "extdrg_cnfhits") %>%
+  arrange(desc(score)) %>%
+  tibble::rowid_to_column("x") %>%
+  mutate(color = numeric_to_2color(score, colors=c("red", "green"), lutminmax=LUT_minmax, ncolors = 1000)) %>%
+  select(symbol, uniprot, score, color, dataset, x)
+
+# Primary screen hits (arrange according to confirmed hits)
+c_extdrg_prihits <- extdrg_prihitsF %>%
+  mutate(dataset = "extdrg_prihits") %>%
+  mutate(rank = match(uniprot, c_extdrg_cnfhits$uniprot)) %>%
+  arrange(rank, symbol) %>%
+  tibble::rowid_to_column("x") %>%
+  mutate(color = numeric_to_2color(score, colors=c("red", "green"), lutminmax=LUT_minmax, ncolors = 1000)) %>%
+  select(symbol, uniprot, score, color, dataset, x)
+
+# Other datasets
+c_others <- lapply(selected_datasets[-c(1,2)], function(ds){
+  temp <- alldata %>%
+    filter(dataset == ds) %>%
+    mutate(rank = match(uniprot, c_extdrg_prihits$uniprot)) %>%
+    arrange(rank, symbol) %>%
+    tibble::rowid_to_column("x") %>%
+    mutate(color = numeric_to_2color(NA)) %>%
+    select(symbol, uniprot, score, color, dataset, x)
+})
+c_others <- do.call(rbind, c_others)
+
+# combination
+c_all <- do.call(rbind, list(c_extdrg_prihits, c_extdrg_cnfhits, c_others))
+
+
+
+######################################################
+# Find genes co-occurring in 2 datasets
+######################################################
+
+# Find pairwise dataset/sector combinations
+sector_combinations <- combn(selected_datasets, 2)
+
+# Find shared genes
+sharedg <- lapply(1:ncol(sector_combinations), function(j){
+  ds1 <- filter(c_all, dataset == sector_combinations[1,j])
+  ds2 <- filter(c_all, dataset == sector_combinations[2,j])
+  
+  ds1 %>%
+    filter(uniprot %in% ds2$uniprot) %>%
+    rename(dataset1 = dataset) %>%
+    rename(x1 = x) %>%
+    mutate(dataset2 = sector_combinations[2,j]) %>%
+    mutate(x2 = ds2[match(uniprot, ds2$uniprot),"x", drop=T])
+})
+sharedg <- do.call(rbind, sharedg)
+
+sharedg_cnfhits <- filter(sharedg, (dataset1 == "extdrg_cnfhits" & dataset2 != "extdrg_prihits") | 
+                            (dataset2 == "extdrg_cnfhits" & dataset1 != "extdrg_prihits"))
+sharedg_prihits <- filter(sharedg, (dataset1 == "extdrg_prihits" & dataset2 != "extdrg_cnfhits") | 
+                            (dataset2 == "extdrg_prihits" & dataset1 != "extdrg_cnfhits"))
+sharedg_others  <- filter(sharedg, !dataset1 %in% c("extdrg_prihits", "extdrg_cnfhits") & 
+                            !dataset2 %in% c("extdrg_prihits", "extdrg_cnfhits"))
+sharedg_main    <- filter(sharedg, symbol %in% key_genes) %>%
+  filter((dataset1 == "extdrg_prihits" & dataset2 != "extdrg_cnfhits") | 
+           (dataset2 == "extdrg_prihits" & dataset1 != "extdrg_cnfhits"))
+```
+
+```{r circos_plot2, cache = TRUE, warning=FALSE, message=FALSE}
+# Start circos
+c_track1 <- filter(c_all, dataset != "extdrg_cnfhits")
+c_track2 <- filter(c_all, dataset == "extdrg_cnfhits")
+
+circos.clear()
+circos.par(gap.degree = 1)
+circos.par(cell.padding = c(0.02, 1.00, 0.02, 1.00))
+circos.initialize(c_track1$dataset, x = c_track1$x)
+
+
+
+# Outer track - Primary hits
+
+circos.track(ylim = c(0,1))
+
+# Add ticks and gene names
+tdatasets <- unique(c_track1$dataset)
+for(sector.index in tdatasets) {
+  
+  secdata <- filter(c_track1, dataset == sector.index)
+  
+  # Add labels
+  xmid <- mean(range(secdata$x))
+  circos.text(xmid, 2, sector.index, facing="bending.inside", col = "darkred", sector.index = sector.index)
+  
+  for(i in 1:nrow(secdata)){
+    x   = secdata[i, "x", drop=T]
+    lbl = secdata[i, "symbol", drop=T]
+    color = secdata[i, "color", drop=T]
+    if(is.na(color)) color <- "darkgray"
+    circos.segments(x, 0, x, 1, col = color, lwd = 1, sector.index = sector.index)
+    circos.text(x, 1, lbl, facing="clockwise", niceFacing = TRUE, adj = c(-0.5,.8), cex=.2, sector.index = sector.index)
+  }
+}
+
+
+
+# Inner track - confirmed hits
+# COnfirmed hits are mapped within the "extdrg_prihits" sector, since they overlap
+
+circos.track(ylim = c(0,1), track.height=.15)
+
+# Add ticks and gene names
+sector.index <- "extdrg_prihits"
+secdata      <- c_track2
+
+for(i in 1:nrow(secdata)){
+  x   = secdata[i, "x", drop=T]
+  lbl = secdata[i, "symbol", drop=T]
+  color = secdata[i, "color", drop=T]
+  if(is.na(color)) color <- "darkgray"
+  circos.segments(x, 0, x, 1, col = color, lwd = 1, sector.index = sector.index)
+}
+
+
+
+
+# Link genes
+# Among non-traffic hits
+for(i in 1:nrow(sharedg_others)){
+  sector1 <- sharedg_others[i, "dataset1", drop=T]
+  sector2 <- sharedg_others[i, "dataset2", drop=T]
+  x1      <- sharedg_others[i, "x1", drop=T]
+  x2      <- sharedg_others[i, "x2", drop=T]
+  circos.link(sector1, x1, sector2, x2, col="gray", lwd = .5)
+  circos.segments(x1, 0, x1, 1, col = "gray", lwd = .5, sector.index = sector1)
+  circos.segments(x2, 0, x2, 1, col = "gray", lwd = .5, sector.index = sector2)
+}
+
+# Among non-confirmed hits and other datasets
+for(i in 1:nrow(sharedg_prihits)){
+  sector1 <- sharedg_prihits[i, "dataset1", drop=T]
+  sector2 <- sharedg_prihits[i, "dataset2", drop=T]
+  x1      <- sharedg_prihits[i, "x1", drop=T]
+  x2      <- sharedg_prihits[i, "x2", drop=T]
+  circos.link(sector1, x1, sector2, x2, col="darkred")
+  if(sector1 != "extdrg_cnfhits") circos.segments(x1, 0, x1, 1, col = "darkred", lwd = 1, sector.index = sector1)
+  if(sector2 != "extdrg_cnfhits") circos.segments(x2, 0, x2, 1, col = "darkred", lwd = 1, sector.index = sector2)
+}
+
+# Among confirmed hits and other datasets
+for(i in 1:nrow(sharedg_cnfhits)){
+  sector1 <- sharedg_cnfhits[i, "dataset1", drop=T]
+  sector2 <- sharedg_cnfhits[i, "dataset2", drop=T]
+  if(sector1 == "extdrg_cnfhits") sector1 <- "extdrg_prihits"
+  if(sector2 == "extdrg_cnfhits") sector2 <- "extdrg_prihits"
+  x1      <- sharedg_cnfhits[i, "x1", drop=T]
+  x2      <- sharedg_cnfhits[i, "x2", drop=T]
+  circos.link(sector1, x1, sector2, x2, col="red", lwd = 2)
+  if(sector1 != "extdrg_cnfhits") circos.segments(x1, 0, x1, 1, col = "red", lwd = 2, sector.index = sector1)
+  if(sector2 != "extdrg_cnfhits") circos.segments(x2, 0, x2, 1, col = "red", lwd = 2, sector.index = sector2)
+}
+
+# Among main hits
+for(i in 1:nrow(sharedg_main)){
+  sector1 <- sharedg_main[i, "dataset1", drop=T]
+  sector2 <- sharedg_main[i, "dataset2", drop=T]
+  x1      <- sharedg_main[i, "x1", drop=T]
+  x2      <- sharedg_main[i, "x2", drop=T]
+  circos.link(sector1, x1, sector2, x2, col="red", lwd = 5)
+  circos.segments(x1, 0, x1, 1, col = "red", lwd = 5, sector.index = sector1)
+  circos.segments(x2, 0, x2, 1, col = "red", lwd = 5, sector.index = sector2)
+}
+
+
+
+# Highlight key genes
+alldataC_key <- filter(c_track1, symbol %in% key_genes)
+for(i in 1:nrow(alldataC_key)){
+  x      <- alldataC_key[i, "x", drop=TRUE]
+  sector <- alldataC_key[i, "dataset", drop=TRUE]
+  lbl    <- alldataC_key[i, "symbol", drop=TRUE]
+  circos.segments(x, 0, x, 1, col = "yellow", lwd = 1, sector.index = sector)
+  circos.text(x, 1, lbl, facing="clockwise", niceFacing = TRUE, adj = c(2.5,0.3), cex=.5, sector.index = sector)
+}
+```

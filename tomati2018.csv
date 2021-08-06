@@ -1,0 +1,38 @@
+"symbol","uniprot","ensembl","entrez","name","score"
+"ALOX5AP","P20292","ENSG00000132965",241,"Arachidonate 5-lipoxygenase-activating protein",1.302
+"ANXA11","P50995","ENSG00000122359",311,"Annexin A11",1.307
+"CDK6","Q00534","ENSG00000105810",1021,"Cyclin-dependent kinase 6",1.342
+"CHD4","Q14839","ENSG00000111642",1108,"Chromodomain-helicase-DNA-binding protein 4",1.787
+"CNTN1","Q12860","ENSG00000018236",1272,"Contactin-1",1.309
+"CSNK2A1","P68400","ENSG00000101266",1457,"Casein kinase II subunit alpha",1.395
+"FAU","P62861","ENSG00000149806",2197,"40S ribosomal protein S30",1.621
+"PGAP2","Q9UHJ9","ENSG00000148985",27315,"Post-GPI attachment to proteins factor 2",1.382
+"GALK1","P51570","ENSG00000108479",2584,"Galactokinase",1.304
+"GJA5","P36382","ENSG00000265107",2702,"Gap junction alpha-5 protein",1.346
+"GJB4","Q9NTQ9","ENSG00000189433",127534,"Gap junction beta-4 protein",1.293
+"GPR149","Q86SP6","ENSG00000174948",344758,"Probable G-protein coupled receptor 149",1.445
+"KCTD8","Q6ZWB6","ENSG00000183783",386617,"BTB/POZ domain-containing protein KCTD8",1.4
+"LRRC59","Q96AG4","ENSG00000108829",55379,"Leucine-rich repeat-containing protein 59",1.37
+"MLLT6","P55198","ENSG00000275851",4302,"Protein AF-17",1.501
+"NR2E3","Q9Y5X4","ENSG00000278570",10002,"Photoreceptor-specific nuclear receptor",1.419
+"P2RX1","P51575","ENSG00000108405",5023,"P2X purinoceptor 1",1.291
+"PHF12","Q96QT6","ENSG00000109118",57649,"PHD finger protein 12",1.49
+"PLXNA1","Q9UIW2","ENSG00000114554",5361,"Plexin-A1",1.484
+"PLXND1","Q9Y4D7","ENSG00000004399",23129,"Plexin-D1",1.295
+"PRPS1","P60891","ENSG00000147224",5631,"Ribose-phosphate pyrophosphokinase 1",1.322
+"PTCH1","Q13635","ENSG00000185920",5727,"Protein patched homolog 1",1.425
+"RARA","P10276","ENSG00000131759",5914,"Retinoic acid receptor alpha",1.31
+"RBBP6","Q7Z6E9","ENSG00000122257",5930,"E3 ubiquitin-protein ligase RBBP6",1.472
+"RNF207","Q6ZRF8","ENSG00000158286",388591,"RING finger protein 207",1.449
+"RORB","Q92753","ENSG00000198963",6096,"Nuclear receptor ROR-beta",1.328
+"SEC22B","O75396","ENSG00000265808",9554,"Vesicle-trafficking protein SEC22b",1.365
+"PRAG1","Q86YV5","ENSG00000275342",157285,"Inactive tyrosine-protein kinase PRAG1",1.411
+"SLC25A1","P53007","ENSG00000100075",6576,"Tricarboxylate transport protein, mitochondrial",1.303
+"SNRNP25","Q9BV90","ENSG00000161981",79622,"U11/U12 small nuclear ribonucleoprotein 25 kDa protein",1.519
+"TLR7","Q9NYK1","ENSG00000196664",51284,"Toll-like receptor 7",1.376
+"TRIM24","O15164","ENSG00000122779",8805,"Transcription intermediary factor 1-alpha",1.739
+"UBA2","Q9UBT2","ENSG00000126261",10054,"SUMO-activating enzyme subunit 2",1.653
+"UBA52","P62987","ENSG00000221983",7311,"Ubiquitin-60S ribosomal protein L40",1.922
+"UBE2C","O00762","ENSG00000175063",11065,"Ubiquitin-conjugating enzyme E2 C",1.357
+"UBE2I","P63279","ENSG00000103275",7329,"SUMO-conjugating enzyme UBC9",1.639
+"UBXN6","Q9BZV1","ENSG00000167671",80700,"UBX domain-containing protein 6",1.366

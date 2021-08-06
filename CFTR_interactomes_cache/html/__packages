@@ -1,0 +1,15 @@
+base
+biomaRt
+rentrez
+XML
+openxlsx
+readxl
+dplyr
+tidyr
+tibble
+readr
+eulerr
+DT
+kableExtra
+gtools
+circlize

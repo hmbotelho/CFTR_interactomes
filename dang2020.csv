@@ -1,0 +1,380 @@
+"symbol","uniprot","ensembl","entrez","name"
+"A4GALT","Q9NPC4","ENSG00000128274",53947,"Lactosylceramide 4-alpha-galactosyltransferase"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"ADAM9","Q13443","ENSG00000168615",8754,"Disintegrin and metalloproteinase domain-containing protein 9"
+"ADD3","Q9UEY8","ENSG00000148700",120,"Gamma-adducin"
+"ADPRH","P54922","ENSG00000144843",141,"[Protein ADP-ribosylarginine] hydrolase"
+NA,NA,NA,NA,NA
+"AGER","Q15109","ENSG00000230514",177,"Advanced glycosylation end product-specific receptor"
+"PDCD6-AHRR","A9YTQ3","ENSG00000288622",57491,"Aryl hydrocarbon receptor repressor"
+NA,NA,NA,NA,NA
+"AK8","Q96MA6","ENSG00000165695",158067,"Adenylate kinase 8"
+"AKR7A2","O43488","ENSG00000053371",8574,"Aflatoxin B1 aldehyde reductase member 2"
+"AKR7A3","O95154","ENSG00000162482",22977,"Aflatoxin B1 aldehyde reductase member 3"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"AMBP","P02760","ENSG00000106927",259,"Protein AMBP"
+NA,NA,NA,NA,NA
+"AP1S1","P61966","ENSG00000106367",1174,"AP-1 complex subunit sigma-1A"
+"APOC2","P02655","ENSG00000234906",344,"Apolipoprotein C-II"
+NA,NA,NA,NA,NA
+"ARFGAP3","Q9NP61","ENSG00000242247",26286,"ADP-ribosylation factor GTPase-activating protein 3"
+"ARID3C","A6NKF2","ENSG00000205143",138715,"AT-rich interactive domain-containing protein 3C"
+"ARL3","P36405","ENSG00000138175",403,"ADP-ribosylation factor-like protein 3"
+"ARVCF","O00192","ENSG00000099889",421,"Armadillo repeat protein deleted in velo-cardio-facial syndrome"
+"ATP5F1C","P36542","ENSG00000165629",509,"ATP synthase subunit gamma, mitochondrial"
+"ATP6V0D2","Q8N8Y2","ENSG00000147614",245972,"V-type proton ATPase subunit d 2"
+"ATXN1","P54253","ENSG00000124788",6310,"Ataxin-1"
+"AUNIP","Q9H7T9","ENSG00000127423",79000,"Aurora kinase A and ninein-interacting protein"
+"AXDND1","Q5T1B0","ENSG00000162779",126859,"Axonemal dynein light chain domain-containing protein 1"
+"AZU1","P20160","ENSG00000278624",566,"Azurocidin"
+NA,NA,NA,NA,NA
+"BIK","Q13323","ENSG00000100290",638,"Bcl-2-interacting killer"
+"BOLA2","Q9H3K6","ENSG00000183336",552900,"BolA-like protein 2"
+"BPIFA1","Q9NP55","ENSG00000198183",51297,"BPI fold-containing family A member 1"
+"BPIFB1","Q8TDL5","ENSG00000125999",92747,"BPI fold-containing family B member 1"
+"BRD9","Q9H8M2","ENSG00000028310",65980,"Bromodomain-containing protein 9"
+"BSCL2","Q96G97","ENSG00000168000",26580,"Seipin"
+"BTNL2","Q9UIR0","ENSG00000225845",56244,"Butyrophilin-like protein 2"
+"VSIR","Q9H7M9","ENSG00000107738",64115,"V-type immunoglobulin domain-containing suppressor of T-cell activation"
+"C12orf43","Q96C57","ENSG00000157895",64897,"Protein CUSTOS"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"MICOS13","Q5XKP0","ENSG00000174917",125988,"MICOS complex subunit MIC13"
+"C1orf87","Q8N0U7","ENSG00000162598",127795,"Uncharacterized protein C1orf87"
+"C1QTNF5","Q9BXJ0","ENSG00000223953",114902,"Complement C1q tumor necrosis factor-related protein 5"
+"C2","P06681","ENSG00000206372",717,"Complement C2"
+NA,NA,NA,NA,NA
+"C22orf39","Q6P5X5","ENSG00000242259",128977,"UPF0545 protein C22orf39"
+"C4orf33","Q8N1A6","ENSG00000151470",132321,"UPF0462 protein C4orf33"
+"C4orf45","Q96LM5","ENSG00000164123",152940,"Uncharacterized protein C4orf45"
+NA,NA,NA,NA,NA
+"C6orf15","Q6UXA7","ENSG00000206461",29113,"Uncharacterized protein C6orf15"
+"C6orf47","O95873","ENSG00000228177",57827,"Uncharacterized protein C6orf47"
+"CYREN","Q9BWK5","ENSG00000122783",78996,"Cell cycle regulator of non-homologous end joining"
+"C7orf50","Q9BRJ6","ENSG00000146540",84310,"Uncharacterized protein C7orf50"
+"LUC7L2","Q9Y383","ENSG00000146963",51631,"Putative RNA-binding protein Luc7-like 2"
+"PPDPFL","Q8WWR9","ENSG00000168333",492307,"Pancreatic progenitor cell differentiation and proliferation factor-like protein"
+"C9orf16","Q9BUW7","ENSG00000171159",79095,"Bublin coiled-coil protein"
+"SPACA9","Q96E40","ENSG00000165698",11092,"Sperm acrosome-associated protein 9"
+"CAAP1","Q9H8G2","ENSG00000120159",79886,"Caspase activity and apoptosis inhibitor 1"
+"CCDC127","Q96BQ5","ENSG00000164366",133957,"Coiled-coil domain-containing protein 127"
+"CCT6A","P40227","ENSG00000146731",908,"T-complex protein 1 subunit zeta"
+"CD302","Q8IX05","ENSG00000241399",9936,"CD302 antigen"
+NA,NA,NA,NA,NA
+"CEACAM6","P40199","ENSG00000086548",4680,"Carcinoembryonic antigen-related cell adhesion molecule 6"
+"CEP120","Q8N960","ENSG00000168944",153241,"Centrosomal protein of 120 kDa"
+"CEP72","Q9P209","ENSG00000112877",55722,"Centrosomal protein of 72 kDa"
+"CFH","P08603","ENSG00000000971",3075,"Complement factor H"
+"CHP2","O43745","ENSG00000166869",63928,"Calcineurin B homologous protein 2"
+"CLIC6","Q96NY7","ENSG00000159212",54102,"Chloride intracellular channel protein 6"
+"CNTD1","Q8N815","ENSG00000176563",124817,"Cyclin N-terminal domain-containing protein 1"
+"COL10A1","Q03692","ENSG00000123500",1300,"Collagen alpha-1(X) chain"
+"CPD","O75976","ENSG00000108582",1362,"Carboxypeptidase D"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"ERFL","A0A1W2PQ73","ENSG00000268041",390937,"ETS domain-containing transcription factor ERF-like"
+NA,NA,NA,NA,NA
+"CTRC","Q99895","ENSG00000162438",11330,"Chymotrypsin-C"
+"CUX2","O14529","ENSG00000111249",23316,"Homeobox protein cut-like 2"
+"CYP21A2","P08686","ENSG00000232414",1589,"Steroid 21-hydroxylase"
+"DDAH2","O95865","ENSG00000226634",23564,"N(G),N(G)-dimethylarginine dimethylaminohydrolase 2"
+"DDX39B","Q13838","ENSG00000235439",7919,"Spliceosome RNA helicase DDX39B"
+"DDX60","Q8IY21","ENSG00000137628",55601,"Probable ATP-dependent RNA helicase DDX60"
+"DESI1","Q6ICB0","ENSG00000100418",27351,"Desumoylating isopeptidase 1"
+"DGCR6","Q14129","ENSG00000183628",8214,"Protein DGCR6"
+"DGCR8","Q8WYQ5","ENSG00000128191",54487,"Microprocessor complex subunit DGCR8"
+NA,NA,NA,NA,NA
+"DIS3L2","Q8IYB7","ENSG00000144535",129563,"DIS3-like exonuclease 2"
+"DNAJB7","Q7Z6W7","ENSG00000172404",150353,"DnaJ homolog subfamily B member 7"
+"DNMT3B","Q9UBC3","ENSG00000088305",1789,"DNA (cytosine-5)-methyltransferase 3B"
+"DOT1L","Q8TEK3","ENSG00000104885",84444,"Histone-lysine N-methyltransferase, H3 lysine-79 specific"
+"DSE","Q9UL01","ENSG00000111817",29940,"Dermatan-sulfate epimerase"
+NA,NA,NA,NA,NA
+"DUSP19","Q8WTR2","ENSG00000162999",142679,"Dual specificity protein phosphatase 19"
+"EBLN2","Q6P2I7","ENSG00000255423",55096,"Endogenous Bornavirus-like nucleoprotein 2"
+"EFNB3","Q15768","ENSG00000108947",1949,"Ephrin-B3"
+"ELAVL2","Q12926","ENSG00000107105",1993,"ELAV-like protein 2"
+"ESD","P10768","ENSG00000139684",2098,"S-formylglutathione hydrolase"
+"EXOC3","O60645","ENSG00000180104",11336,"Exocyst complex component 3"
+"F11","P03951","ENSG00000088926",2160,"Coagulation factor XI"
+"FADS3","Q9Y5Q0","ENSG00000221968",3995,"Fatty acid desaturase 3"
+"CALHM6","Q5R3K3","ENSG00000188820",441168,"Calcium homeostasis modulator protein 6"
+"TLCD3A","Q8TBR7","ENSG00000167695",79850,"TLC domain-containing protein 3A"
+"DIPK1B","Q5VUD6","ENSG00000165716",138311,"Divergent protein kinase domain 1B"
+NA,NA,NA,NA,NA
+"FGF20","Q9NP95","ENSG00000078579",26281,"Fibroblast growth factor 20"
+"FKBPL","Q9UIM3","ENSG00000223666",63943,"FK506-binding protein-like"
+"FOXP2","O15409","ENSG00000128573",93986,"Forkhead box protein P2"
+"FRG1","Q14331","ENSG00000275145",2483,"Protein FRG1"
+"FRK","P42685","ENSG00000111816",2444,"Tyrosine-protein kinase FRK"
+"FRMPD1","Q5SYB0","ENSG00000070601",22844,"FERM and PDZ domain-containing protein 1"
+"FRZB","Q92765","ENSG00000162998",2487,"Secreted frizzled-related protein 3"
+"GAN","Q9H2C0","ENSG00000261609",8139,"Gigaxonin"
+"GAS2L3","Q86XJ1","ENSG00000139354",283431,"GAS2-like protein 3"
+"CASTOR1","Q8WTX7","ENSG00000239282",652968,"Cytosolic arginine sensor for mTORC1 subunit 1"
+"NIPSNAP2","O75323","ENSG00000146729",2631,"Protein NipSnap homolog 2"
+"GLTP","Q9NZD2","ENSG00000139433",51228,"Glycolipid transfer protein"
+"GNA12","Q03113","ENSG00000146535",2768,"Guanine nucleotide-binding protein subunit alpha-12"
+"GOSR1","O95249","ENSG00000108587",9527,"Golgi SNAP receptor complex member 1"
+"GPBP1","Q86WP2","ENSG00000062194",65056,"Vasculin"
+"GSTA4","O15217","ENSG00000170899",2941,"Glutathione S-transferase A4"
+"GUCA1A","P43080","ENSG00000048545",2978,"Guanylyl cyclase-activating protein 1"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"HDHD2","Q9H0R4","ENSG00000167220",84064,"Haloacid dehalogenase-like hydrolase domain-containing protein 2"
+"DNAAF5","Q86Y56","ENSG00000164818",54919,"Dynein axonemal assembly factor 5"
+"MFSD14B","Q5SR56","ENSG00000148110",84641,"Hippocampus abundant transcript-like protein 1"
+"HIC2","Q96JB3","ENSG00000169635",23119,"Hypermethylated in cancer 2 protein"
+"HIGD2A","Q9BW72","ENSG00000146066",192286,"HIG1 domain family member 2A, mitochondrial"
+"HLA-B","P01889","ENSG00000234745",3106,"HLA class I histocompatibility antigen, B alpha chain"
+"HLA-DQA1","P01909","ENSG00000232062",3117,"HLA class II histocompatibility antigen, DQ alpha 1 chain"
+"HLA-DQA2","P01906","ENSG00000233192",3117,"HLA class II histocompatibility antigen, DQ alpha 2 chain"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"HLA-DQB2","P05538","ENSG00000230675",3120,"HLA class II histocompatibility antigen, DQ beta 2 chain"
+"HLA-DRA","P01903","ENSG00000234794",3122,"HLA class II histocompatibility antigen, DR alpha chain"
+"HLA-DRB1","P01911","ENSG00000196126",3123,"HLA class II histocompatibility antigen, DRB1 beta chain"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"HRK","O00198","ENSG00000135116",8739,"Activator of apoptosis harakiri"
+"HSPB3","Q12988","ENSG00000169271",8988,"Heat shock protein beta-3"
+"CILK1","Q9UPZ9","ENSG00000112144",22858,"Serine/threonine-protein kinase ICK"
+"IER3IP1","Q9Y5U9","ENSG00000134049",51124,"Immediate early response 3-interacting protein 1"
+"IFFO2","Q5TF58","ENSG00000169991",126917,"Intermediate filament family orphan 2"
+"IFT74","Q96LB3","ENSG00000096872",80173,"Intraflagellar transport protein 74 homolog"
+"IGSF5","Q9NSI5","ENSG00000183067",150084,"Immunoglobulin superfamily member 5"
+"INHBE","P58166","ENSG00000139269",83729,"Inhibin beta E chain"
+"INSC","Q1MX18","ENSG00000188487",387755,"Protein inscuteable homolog"
+"ITM2C","Q9NQX7","ENSG00000135916",81618,"Integral membrane protein 2C"
+"JAZF1","Q86VZ6","ENSG00000153814",221895,"Juxtaposed with another zinc finger protein 1"
+"JMJD6","Q6NYC1","ENSG00000070495",23210,"Bifunctional arginine demethylase and lysyl-hydroxylase JMJD6"
+"KCNT2","Q6UVM3","ENSG00000162687",343450,"Potassium channel subfamily T member 2"
+"KIDINS220","Q9ULH0","ENSG00000134313",57498,"Kinase D-interacting substrate of 220 kDa"
+"LCN2","P80188","ENSG00000148346",3934,"Neutrophil gelatinase-associated lipocalin"
+"LDLRAP1","Q5SW96","ENSG00000157978",26119,"Low density lipoprotein receptor adapter protein 1"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"LRRC14B","A6NHZ5","ENSG00000185028",389257,"Leucine-rich repeat-containing protein 14B"
+"LY6G6C","O95867","ENSG00000228859",80740,"Lymphocyte antigen 6 complex locus protein G6c"
+"MAST3","O60307","ENSG00000099308",23031,"Microtubule-associated serine/threonine-protein kinase 3"
+"MED19","A0JLT2","ENSG00000156603",219541,"Mediator of RNA polymerase II transcription subunit 19"
+"MET","P08581","ENSG00000105976",4233,"Hepatocyte growth factor receptor"
+"METAP2","P50579","ENSG00000111142",10988,"Methionine aminopeptidase 2"
+"METTL7A","Q9H8H3","ENSG00000185432",25840,"Methyltransferase-like protein 7A"
+"MEX3C","Q5U5Q3","ENSG00000176624",51320,"RNA-binding E3 ubiquitin-protein ligase MEX3C"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"MKNK2","Q9HBH9","ENSG00000099875",2872,"MAP kinase-interacting serine/threonine-protein kinase 2"
+"MAP3K21","Q5TCX8","ENSG00000143674",84451,"Mitogen-activated protein kinase kinase kinase 21"
+"MMAA","Q8IVH4","ENSG00000151611",166785,"Methylmalonic aciduria type A protein, mitochondrial"
+"MME","P08473","ENSG00000196549",4311,"Neprilysin"
+"MOV10L1","Q9BXT6","ENSG00000073146",54456,"RNA helicase Mov10l1"
+"MPP3","Q13368","ENSG00000161647",4356,"MAGUK p55 subfamily member 3"
+"MROH7","Q68CQ1","ENSG00000184313",374977,"Maestro heat-like repeat-containing protein family member 7"
+"MTFMT","Q96DP5","ENSG00000103707",123263,"Methionyl-tRNA formyltransferase, mitochondrial"
+"MTFR1L","Q9H019","ENSG00000117640",56181,"Mitochondrial fission regulator 1-like"
+"MTG1","Q9BT17","ENSG00000148824",92170,"Mitochondrial ribosome-associated GTPase 1"
+"MUC20","Q8N307","ENSG00000278114",200958,"Mucin-20"
+"MUC4","Q99102","ENSG00000145113",4585,"Mucin-4"
+"MXRA7","P84157","ENSG00000182534",439921,"Matrix-remodeling-associated protein 7"
+"MYCL","P12524","ENSG00000116990",4610,"Protein L-Myc"
+"MYL4","P12829","ENSG00000198336",4635,"Myosin light chain 4"
+NA,NA,NA,NA,NA
+"MYO3B","Q8WXR4","ENSG00000071909",140469,"Myosin-IIIb"
+"MYRF","Q9Y2G1","ENSG00000124920",745,"Myelin regulatory factor"
+"NCBP2AS2","Q69YL0","ENSG00000270170",152217,"Protein NCBP2AS2"
+"NCOA3","Q9Y6Q9","ENSG00000124151",8202,"Nuclear receptor coactivator 3"
+"NDC1","Q9BTX1","ENSG00000058804",55706,"Nucleoporin NDC1"
+"NDUFAF6","Q330K2","ENSG00000156170",137682,"NADH dehydrogenase (ubiquinone) complex I, assembly factor 6"
+NA,NA,NA,NA,NA
+"NFAM1","Q8NET5","ENSG00000235568",150372,"NFAT activation molecule 1"
+"NKX2-6","A6NCS4","ENSG00000180053",137814,"Homeobox protein Nkx-2.6"
+"NOTCH4","Q99466","ENSG00000238196",4855,"Neurogenic locus notch homolog protein 4"
+"NPY1R","P25929","ENSG00000164128",4886,"Neuropeptide Y receptor type 1"
+"NPY5R","Q15761","ENSG00000164129",4889,"Neuropeptide Y receptor type 5"
+"NR2C1","P13056","ENSG00000120798",7181,"Nuclear receptor subfamily 2 group C member 1"
+"NRF1","Q16656","ENSG00000106459",4899,"Nuclear respiratory factor 1"
+"NRIP1","P48552","ENSG00000180530",8204,"Nuclear receptor-interacting protein 1"
+"NT5DC1","Q5TFE4","ENSG00000178425",221294,"5'-nucleotidase domain-containing protein 1"
+"NUBP1","P53384","ENSG00000103274",4682,"Cytosolic Fe-S cluster assembly factor NUBP1"
+"OAF","Q86UD1","ENSG00000184232",220323,"Out at first protein homolog"
+"OASL","Q15646","ENSG00000135114",8638,"2'-5'-oligoadenylate synthase-like protein"
+NA,NA,NA,NA,NA
+"OR6K3","Q8NGY3","ENSG00000203757",391114,"Olfactory receptor 6K3"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"ORMDL3","Q8N138","ENSG00000172057",94103,"ORM1-like protein 3"
+"OSBPL10","Q9BXB5","ENSG00000144645",114884,"Oxysterol-binding protein-related protein 10"
+"OSTN","P61366","ENSG00000188729",344901,"Osteocrin"
+"OXGR1","Q96P68","ENSG00000165621",27199,"2-oxoglutarate receptor 1"
+"PACSIN2","Q9UNF0","ENSG00000100266",11252,"Protein kinase C and casein kinase substrate in neurons protein 2"
+"PAQR7","Q86WK9","ENSG00000182749",164091,"Membrane progestin receptor alpha"
+"PDHX","O00330","ENSG00000110435",8050,"Pyruvate dehydrogenase protein X component, mitochondrial"
+NA,NA,NA,NA,NA
+"PDLIM3","Q53GG5","ENSG00000154553",27295,"PDZ and LIM domain protein 3"
+"PIAS2","O75928","ENSG00000078043",9063,"E3 SUMO-protein ligase PIAS2"
+"PIGO","Q8TEQ8","ENSG00000165282",84720,"GPI ethanolamine phosphate transferase 3"
+NA,NA,NA,NA,NA
+"PIK3R2","O00459","ENSG00000105647",5296,"Phosphatidylinositol 3-kinase regulatory subunit beta"
+"PKIB","Q9C010","ENSG00000135549",5570,"cAMP-dependent protein kinase inhibitor beta"
+"PLA2R1","Q13018","ENSG00000153246",22925,"Secretory phospholipase A2 receptor"
+"PLEKHF2","Q9H8W4","ENSG00000175895",79666,"Pleckstrin homology domain-containing family F member 2"
+"PLEKHG4B","Q96PX9","ENSG00000153404",153478,"Pleckstrin homology domain-containing family G member 4B"
+"PNLIPRP3","Q17RR3","ENSG00000203837",119548,"Pancreatic lipase-related protein 3"
+"POC5","Q8NA72","ENSG00000152359",134359,"Centrosomal protein POC5"
+"PPFIA4","O75335","ENSG00000143847",8497,"Liprin-alpha-4"
+"PPP1R3A","Q16821","ENSG00000154415",5506,"Protein phosphatase 1 regulatory subunit 3A"
+"SLC66A1","Q6ZP29","ENSG00000040487",54896,"Lysosomal amino acid transporter 1 homolog"
+"PRG2","P13727","ENSG00000186652",5553,"Bone marrow proteoglycan"
+"PRKCB","P05771","ENSG00000166501",5579,"Protein kinase C beta type"
+"PROM1","O43490","ENSG00000007062",8842,"Prominin-1"
+"PRRT1","Q99946","ENSG00000229071",80863,"Proline-rich transmembrane protein 1"
+"DISP3","Q9P2K9","ENSG00000204624",57540,"Protein dispatched homolog 3"
+"PUS10","Q3MIT2","ENSG00000162927",150962,"tRNA pseudouridine synthase Pus10"
+"RAC2","P15153","ENSG00000128340",5880,"Ras-related C3 botulinum toxin substrate 2"
+NA,NA,NA,NA,NA
+"RASSF3","Q86WH2","ENSG00000153179",283349,"Ras association domain-containing protein 3"
+"RHBDD2","Q6NTF9","ENSG00000005486",57414,"Rhomboid domain-containing protein 2"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"RORC","P51449","ENSG00000143365",6097,"Nuclear receptor ROR-gamma"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"RPRML","Q8N4K4","ENSG00000179673",388394,"Reprimo-like protein"
+"SCGB2A2","Q13296","ENSG00000110484",4250,"Mammaglobin-A"
+"SCRN2","Q96FV2","ENSG00000141295",90507,"Secernin-2"
+"SDHA","P31040","ENSG00000073578",6389,"Succinate dehydrogenase [ubiquinone] flavoprotein subunit, mitochondrial"
+NA,NA,NA,NA,NA
+"SELENOT","P62341","ENSG00000198843",51714,"Thioredoxin reductase-like selenoprotein T"
+"SELENON","Q9NZV5","ENSG00000162430",57190,"Selenoprotein N"
+"SERINC1","Q9NRX5","ENSG00000111897",57515,"Serine incorporator 1"
+"SERP1","Q9Y6X1","ENSG00000120742",27230,"Stress-associated endoplasmic reticulum protein 1"
+"SERPINE2","P07093","ENSG00000135919",5270,"Glia-derived nexin"
+NA,NA,NA,NA,NA
+"SLC39A8","Q9C0K1","ENSG00000138821",64116,"Metal cation symporter ZIP8"
+"SLC3A2","P08195","ENSG00000168003",6520,"4F2 cell-surface antigen heavy chain"
+"SLC43A1","O75387","ENSG00000149150",8501,"Large neutral amino acids transporter small subunit 3"
+"SLC6A12","P48065","ENSG00000111181",6539,"Sodium- and chloride-dependent betaine transporter"
+"SLC9A3","P48764","ENSG00000066230",6550,"Sodium/hydrogen exchanger 3"
+"SLFN13","Q68D06","ENSG00000154760",146857,"Schlafen family member 13"
+"SLITRK3","O94933","ENSG00000121871",22865,"SLIT and NTRK-like protein 3"
+"SMAD4","Q13485","ENSG00000141646",4089,"Mothers against decapentaplegic homolog 4"
+"SMTNL1","A8MU46","ENSG00000214872",219537,"Smoothelin-like protein 1"
+NA,NA,NA,NA,NA
+"SOAT1","P35610","ENSG00000057252",6646,"Sterol O-acyltransferase 1"
+"SPARC","P09486","ENSG00000113140",6678,"SPARC"
+"SPATC1L","Q9H0A9","ENSG00000274679",84221,"Speriolin-like protein"
+"SPG21","Q9NZD8","ENSG00000090487",51324,"Maspardin"
+NA,NA,NA,NA,NA
+"STC2","O76061","ENSG00000113739",8614,"Stanniocalcin-2"
+"STMN1","P16949","ENSG00000117632",3925,"Stathmin"
+"TAPT1","Q6NXT6","ENSG00000169762",202018,"Transmembrane anterior posterior transformation protein 1 homolog"
+"TARS2","Q9BW92","ENSG00000143374",80222,"Threonine--tRNA ligase, mitochondrial"
+NA,NA,NA,NA,NA
+"TDRKH","Q9Y2W6","ENSG00000182134",11022,"Tudor and KH domain-containing protein"
+"TFCP2","Q12800","ENSG00000135457",7024,"Alpha-globin transcription factor CP2"
+"TFRC","P02786","ENSG00000072274",7037,"Transferrin receptor protein 1"
+"THRB","P10828","ENSG00000151090",7068,"Thyroid hormone receptor beta"
+"TIMM10","P62072","ENSG00000134809",26519,"Mitochondrial import inner membrane translocase subunit Tim10"
+"TMA7","Q9Y2S6","ENSG00000232112",51372,"Translation machinery-associated protein 7"
+"TMEM106B","Q9NUM4","ENSG00000106460",54664,"Transmembrane protein 106B"
+"TMEM140","Q9NV12","ENSG00000146859",55281,"Transmembrane protein 140"
+"TMEM179","Q6ZVK1","ENSG00000276342",388021,"Transmembrane protein 179"
+"TMEM203","Q969S6","ENSG00000187713",94107,"Transmembrane protein 203"
+"TMEM223","A0PJW6","ENSG00000168569",79064,"Transmembrane protein 223"
+"TMEM255B","Q8WV15","ENSG00000184497",348013,"Transmembrane protein 255B"
+"TMEM30B","Q3MIR4","ENSG00000182107",161291,"Cell cycle control protein 50B"
+"TMPRSS6","Q8IU80","ENSG00000187045",164656,"Transmembrane protease serine 6"
+"TNK2","Q07912","ENSG00000061938",10188,"Activated CDC42 kinase 1"
+NA,NA,NA,NA,NA
+"TPPP","O94811","ENSG00000171368",11076,"Tubulin polymerization-promoting protein"
+"TRAPPC2L","Q9UL33","ENSG00000167515",51693,"Trafficking protein particle complex subunit 2-like protein"
+"TREX1","Q9NSU2","ENSG00000213689",11277,"Three-prime repair exonuclease 1"
+"TRIP13","Q15645","ENSG00000071539",9319,"Pachytene checkpoint protein 2 homolog"
+"TSPYL4","Q9UJ04","ENSG00000187189",23270,"Testis-specific Y-encoded-like protein 4"
+"TTC22","Q5TAA0","ENSG00000006555",55001,"Tetratricopeptide repeat protein 22"
+"TTC4","O95801","ENSG00000243725",7268,"Tetratricopeptide repeat protein 4"
+NA,NA,NA,NA,NA
+"UBE2Z","Q9H832","ENSG00000159202",65264,"Ubiquitin-conjugating enzyme E2 Z"
+"UFD1","Q92890","ENSG00000070010",7353,"Ubiquitin recognition factor in ER-associated degradation protein 1"
+"UNC13A","Q9UPW8","ENSG00000130477",23025,"Protein unc-13 homolog A"
+"VAV3","Q9UKW4","ENSG00000134215",10451,"Guanine nucleotide exchange factor VAV3"
+"VAX2","Q9UIW0","ENSG00000116035",25806,"Ventral anterior homeobox 2"
+"VILL","O15195","ENSG00000136059",50853,"Villin-like protein"
+"WDR76","Q9H967","ENSG00000092470",79968,"WD repeat-containing protein 76"
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+NA,NA,NA,NA,NA
+"XXYLT1","Q8NBI6","ENSG00000173950",152002,"Xyloside xylosyltransferase 1"
+"YTHDF2","Q9Y5A9","ENSG00000198492",51441,"YTH domain-containing family protein 2"
+NA,NA,NA,NA,NA
+"ZBTB6","Q15916","ENSG00000186130",10773,"Zinc finger and BTB domain-containing protein 6"
+"ZDHHC11","Q9H8X9","ENSG00000188818",79844,"Palmitoyltransferase ZDHHC11"
+"ZDHHC11B","P0C7U3","ENSG00000206077",653082,"Probable palmitoyltransferase ZDHHC11B"
+"ZFP36L2","P47974","ENSG00000152518",678,"mRNA decay activator protein ZFP36L2"
+"ZNF282","Q9UDV7","ENSG00000170265",8427,"Zinc finger protein 282"
+"ZNF404","Q494X3","ENSG00000176222",342908,"Zinc finger protein 404"
+"ZNF443","Q9Y2A4","ENSG00000180855",10224,"Zinc finger protein 443"
+"ZNF544","Q6NX49","ENSG00000198131",27300,"Zinc finger protein 544"
+"ZNF709","Q8N972","ENSG00000242852",163051,"Zinc finger protein 709"
+"ZNF713","Q8N859","ENSG00000178665",349075,"Zinc finger protein 713"
+"ZNF860","A6NHJ4","ENSG00000197385",344787,"Zinc finger protein 860"
+NA,NA,NA,NA,NA
+"ZSWIM3","Q96MP5","ENSG00000132801",140831,"Zinc finger SWIM domain-containing protein 3"
+"ZYX","Q15942","ENSG00000285443",7791,"Zyxin"
