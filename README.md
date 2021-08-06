@@ -6,6 +6,9 @@
 Collects data from the original online sources, converts gene/protein identifiers into a standard tidy format and updates the identifiers. The Uniprot ID is taken as reference and all other identifiers are genereated from them. This causes some datasets to end up with less genes/proteins than reported.  
 
 
+**View data processing notebook:** [https://hmbotelho.github.io/CFTR_interactomes/](https://hmbotelho.github.io/CFTR_interactomes/)  
+
+
 ## Datasets
 * **Botelho (2021)** - CFTR traffic regulators  
 	* Botelho *et al* (2021) in preparation
