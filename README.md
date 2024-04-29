@@ -1,7 +1,7 @@
 # CFTR interactomes
 *A tidy selection of published CFTR interactomes (or CFTR-related omics datasets)*
 
-6 August 2021  
+30 April 2022  
 
 Collects data from the original online sources, converts gene/protein identifiers into a standard tidy format and updates the identifiers. The Uniprot ID is taken as reference and all other identifiers are genereated from them. This causes some datasets to end up with less genes/proteins than reported.  
 
@@ -40,3 +40,5 @@ Collects data from the original online sources, converts gene/protein identifier
 	* Dang *et al* (2020) Mining GWAS and eQTL data for CF lung disease modifiers by gene expression imputation. *PLoS One*. 15(11):e0239189. [https://doi.org/10.1371/journal.pone.0239189](https://doi.org/10.1371/journal.pone.0239189)  
 * **Hodos (2020)** - CF genomic meta-analysis  
 	* Hodos *et al* (2020) Integrative genomic meta-analysis reveals novel molecular insights into cystic fibrosis and deltaF508-CFTR rescue. *Sci Rep* 10(1):20553. [http://dx.doi.org/10.1038/s41598-020-76347-0](http://dx.doi.org/10.1038/s41598-020-76347-0)  
+* **Lim (2022)** - CFTR Plasma Membrane interactome
+	* Lim *et al* (2022) CFTR interactome mapping using the mammalian membrane two-hybrid high-throughput screening system. *Mol Syst Biol* 18(2):e10629. [http://dx.doi.org/10.15252/msb.202110629](http://dx.doi.org/10.15252/msb.202110629)  

@@ -1,7 +1,7 @@
 ---
 title: "CFTR interactomes"
 author: "Hugo Botelho"
-date: "August 5, 2021"
+date: "April 30, 2024"
 output:
   html_document:
     toc: true
@@ -85,8 +85,10 @@ path_extdrg_prihits  <- paste0(datafolder, "/extdrg_prihits.csv")
 path_extdrg_cnfhits  <- paste0(datafolder, "/extdrg_cnfhits.csv")
 
 src_pankow2015_core  <- "https://static-content.springer.com/esm/art%3A10.1038%2Fnature15729/MediaObjects/41586_2015_BFnature15729_MOESM252_ESM.xlsx"
-src_pankow2015_df    <- "https://static-content.springer.com/esm/art%3A10.1038%2Fnature15729/MediaObjects/41586_2015_BFnature15729_MOESM254_ESM.xlsx"
+src_pankow2015_wt    <- src_pankow2015_core
+src_pankow2015_df    <- src_pankow2015_core
 path_pankow2015_core <- paste0(datafolder, "/pankow2015_core.csv")
+path_pankow2015_wt   <- paste0(datafolder, "/pankow2015_wt.csv")
 path_pankow2015_df   <- paste0(datafolder, "/pankow2015_df.csv")
 
 src_canato2018       <- "https://static-content.springer.com/esm/art%3A10.1007%2Fs00018-018-2896-7/MediaObjects/18_2018_2896_MOESM8_ESM.xlsx"
@@ -139,6 +141,11 @@ src_hodos2020_allsig  <- "https://static-content.springer.com/esm/art%3A10.1038%
 path_hodos2020_deg    <- paste0(datafolder, "/hodos2020_deg.csv")
 path_hodos2020_cosig  <- paste0(datafolder, "/hodos2020_cosig.csv")
 path_hodos2020_allsig <- paste0(datafolder, "/hodos2020_allsig.csv")
+
+src_lim2021_wt        <- NA
+src_lim2021_df        <- NA
+path_lim2021_wt       <- paste0(datafolder, "/lim2021_wt.csv")
+path_lim2021_df       <- paste0(datafolder, "/lim2021_df.csv")
 
 path_intfull          <- paste0(datafolder, "/INTERACTOMES_FULLDATA.csv")
 path_intsummary       <- paste0(datafolder, "/INTERACTOMES_SUMMARY.csv")
@@ -390,7 +397,7 @@ if(file.exists(path_pankow2015_core)){
     
 } else{
 
-    tmp   <- tempfile()
+    tmp   <- paste0(tempfile(), ".xlsx")
     download.file(url = src_pankow2015_core, destfile = tmp, mode="wb")
 
     df    <- tibble(read.xlsx(tmp, sheet = 1))
@@ -423,6 +430,62 @@ n_pankow2015_coreF <- nrow(pankow2015_coreF)
 
 
 
+# wt-CFTR interactome
+# Get data
+if(file.exists(path_pankow2015_wt)){
+  
+    pankow2015_wt <- read_csv(path_pankow2015_wt)
+    
+} else{
+
+    tmp   <- paste0(tempfile(), ".xlsx")
+    download.file(url = src_pankow2015_wt, destfile = tmp, mode="wb")
+
+    # gene symbols of wt-CFTR interactors
+    df <-    tmp %>%
+             read.xlsx(sheet = 2) %>%
+             dplyr::select(GeneSymbol, Protein1_Genemania_ID) %>%
+             filter(!is.na(GeneSymbol)) %>%
+             filter(GeneSymbol != "CFTR")
+    up    <- pankow2015_core %>%
+             filter(symbol %in% df$GeneSymbol) %>%
+             pull(uniprot)
+    gene  <- uniprot_to_genesymbol(up)                                            # Get gene symbols
+    up_na <- up[which(is.na(gene))]                                               # Gene uniprot IDs for which a gene symbol could not be found
+    gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]       # Add missing gene symbols
+    id    <- uniprot_to_geneid(up)
+    ensg  <- uniprot_to_ensembl(up)
+    gname <- uniprot_to_genename(up, parallelize = TRUE)
+    
+    pankow2015_wt  <- tibble(symbol  = gene,
+                             uniprot = up,
+                             ensembl = ensg,
+                             entrez  = id,
+                             name    = gname)
+    
+    write.csv(pankow2015_wt, path_pankow2015_wt, row.names = FALSE)
+}
+
+# Library statistics (mapped genes)
+pankow2015_wtF   <- pankow2015_wt %>%
+                    group_by(uniprot) %>%
+                    slice(1) %>%                # Remove duplicate uniprot IDs
+                    ungroup() %>%
+                    filter(!is.na(uniprot))     # Remove unknowns
+
+n_pankow2015_wt  <- nrow(pankow2015_wt)
+n_pankow2015_wtF <- nrow(pankow2015_wtF)
+
+
+
+
+
+
+
+
+
+
+
 # F508del-CFTR interactome
 # Get data
 if(file.exists(path_pankow2015_df)){
@@ -431,24 +494,31 @@ if(file.exists(path_pankow2015_df)){
     
 } else{
 
-    tmp   <- tempfile()
+    tmp   <- paste0(tempfile(), ".xlsx")
     download.file(url = src_pankow2015_df, destfile = tmp, mode="wb")
 
-    df    <- tibble(read.xlsx(tmp, sheet = 1))
-    up    <- df[[3]]
+    # gene symbols of F508del-CFTR interactors
+    df <-    tmp %>%
+             read.xlsx(sheet = 3) %>%
+             dplyr::select(GeneSymbol, Protein1_Genemania_ID) %>%
+             filter(!is.na(GeneSymbol)) %>%
+             filter(GeneSymbol != "CFTR")
+    up    <- pankow2015_core %>%
+             filter(symbol %in% df$GeneSymbol) %>%
+             pull(uniprot)
     gene  <- uniprot_to_genesymbol(up)                                            # Get gene symbols
     up_na <- up[which(is.na(gene))]                                               # Gene uniprot IDs for which a gene symbol could not be found
     gene[is.na(gene)] <- extraids[match(up_na, extraids$uniprot), "symbol"]       # Add missing gene symbols
-    ensg  <- uniprot_to_ensembl(up)
     id    <- uniprot_to_geneid(up)
+    ensg  <- uniprot_to_ensembl(up)
     gname <- uniprot_to_genename(up, parallelize = TRUE)
-
+    
     pankow2015_df  <- tibble(symbol  = gene,
                              uniprot = up,
                              ensembl = ensg,
                              entrez  = id,
                              name    = gname)
-      
+    
     write.csv(pankow2015_df, path_pankow2015_df, row.names = FALSE)
 }
 
@@ -467,9 +537,21 @@ n_pankow2015_dfF <- nrow(pankow2015_dfF)
 \* All data: `r n_pankow2015_core` genes.\
 \* After name updating: `r n_pankow2015_coreF` genes.
 
+**wt-CFTR interactome:**\
+\* All data: `r n_pankow2015_wt` genes.\
+\* After name updating: `r n_pankow2015_wtF` genes.
+
 **F508del-CFTR interactome:**\
 \* All data: `r n_pankow2015_df` genes.\
 \* After name updating: `r n_pankow2015_dfF` genes.
+
+```{r, echo=FALSE}
+s_pankow2015core_wt_df <- list(core_interactors = paste(pankow2015_coreF$symbol, pankow2015_coreF$uniprot), 
+                               wt_interactors = paste(pankow2015_wtF$symbol, pankow2015_wtF$uniprot),
+                               df_interactors = paste(pankow2015_dfF$symbol, pankow2015_dfF$uniprot))
+
+plot(euler(s_pankow2015core_wt_df), shape="ellipse", quantities=list(cex=.8), labels=list(cex=.8))
+```
 
 ```{r, echo=FALSE, eval=FALSE}
 s_prihits_cnfhits_pankow2015core <- list(primary_hits    = paste(extdrg_prihitsF$symbol, extdrg_prihitsF$uniprot), 
@@ -2123,6 +2205,21 @@ g_cnfhits_hodos2020allsig %>%
 
 \newpage
 
+### Lim (2022) PM interactome
+
+Mol Syst Biol (2022) 18(2):e10629  
+**CFTR interactome mapping using the mammalian membrane two-hybrid high-throughput screening systeme**\
+Sang Hyun Lim, Jamie Snider, Liron Birimberg-Schwartz, Wan Ip, Joana C Serralha, Hugo M Botelho, Miquéias Lopes-Pacheco, Madalena C Pinto, Mohamed Taha Moutaoufik, Mara Zilocchi, Onofrio Laselva, Mohsen Esmaeili, Max Kotlyar, Anna Lyakisheva, Priscilla Tang, Lucía López Vázquez, Indira Akula, Farzaneh Aboualizadeh, Victoria Wong, Ingrid Grozavu, Teuta Opacak-Bernardi, Zhong Yao, Meg Mendoza, Mohan Babu, Igor Jurisica, Tanja Gonska, Christine E Bear, Margarida D Amaral, Igor Stagljar  
+<http://dx.doi.org/10.15252/msb.202110629>
+
+Application of a high-throughput screening variant of the Mammalian Membrane Two-Hybrid (MaMTH-HTS) to map the protein-protein interactions of wild-type (wt) and mutant CFTR (F508del) in HEK293 cells. Uncovered candidate proteins with potential roles in CFTR function/CF pathophysiology, including Fibrinogen Like 2 (FGL2).  
+
+wt- and F508del-CFTR had 178 and 223 unique interactions, respectively, as well as an overlap of 46 interactors (~10.2%).  
+
+*To be done*  
+
+\newpage
+
 
 
 ## Interactome summary
@@ -2137,6 +2234,7 @@ if(file.exists(path_intfull)){
                      extdrg_prihits   = extdrg_prihitsF,
                      extdrg_cnfhits   = extdrg_cnfhitsF,
                      pankow2015_core  = pankow2015_coreF,
+                     pankow2015_wt    = pankow2015_wtF,
                      pankow2015_df    = pankow2015_dfF,
                      canato2018_df    = canato2018_dfF,
                      canato2018_4RK   = canato2018_4RKF,
@@ -2157,7 +2255,9 @@ if(file.exists(path_intfull)){
                      dang2020         = dang2020F,
                      hodos2020_deg    = hodos2020_degF,
                      hodos2020_cosig  = hodos2020_cosigF,
-                     hodos2020_allsig = hodos2020_allsigF)
+                     hodos2020_allsig = hodos2020_allsigF
+                     # lim2022
+                     )
     
     alldata <- lapply(names(alldataL), function(x){
         temp <- alldataL[[x]]
